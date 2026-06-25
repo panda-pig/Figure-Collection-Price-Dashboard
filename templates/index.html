@@ -5,12 +5,12 @@
 {% block content %}
 <header class="page-header dashboard-header">
   <div>
-    <p class="eyebrow">フィギュア商品比較</p>
-    <h1>Collection Dashboard</h1>
+    <p class="eyebrow" data-i18n="dashboard.eyebrow">フィギュア商品比較</p>
+    <h1 data-i18n="dashboard.title">Collection Dashboard</h1>
   </div>
   <div class="header-stat">
-    <span>Next release window</span>
-    <strong id="nextReleaseLabel">Loading</strong>
+    <span data-i18n="dashboard.nextRelease">Next release window</span>
+    <strong id="nextReleaseLabel" data-i18n="common.loading">Loading</strong>
   </div>
 </header>
 
@@ -20,8 +20,8 @@
   <article class="panel chart-panel wide">
     <div class="panel-head">
       <div>
-        <h2>Brand Distribution</h2>
-        <p>商品マスター全体のブランド比率</p>
+        <h2 data-i18n="chart.brandDistribution">Brand Distribution</h2>
+        <p data-i18n="chart.brandDistributionDesc">商品マスター全体のブランド比率</p>
       </div>
     </div>
     <div id="brandChart" class="chart"></div>
@@ -30,8 +30,8 @@
   <article class="panel chart-panel">
     <div class="panel-head">
       <div>
-        <h2>Ownership</h2>
-        <p>收藏状态分布</p>
+        <h2 data-i18n="chart.ownership">Ownership</h2>
+        <p data-i18n="chart.ownershipDesc">收藏状态分布</p>
       </div>
     </div>
     <div id="ownershipChart" class="chart"></div>
@@ -40,8 +40,8 @@
   <article class="panel chart-panel">
     <div class="panel-head">
       <div>
-        <h2>Release Calendar</h2>
-        <p>按发售月份统计</p>
+        <h2 data-i18n="chart.releaseCalendar">Release Calendar</h2>
+        <p data-i18n="chart.releaseCalendarDesc">按发售月份统计</p>
       </div>
     </div>
     <div id="releaseChart" class="chart"></div>
@@ -50,8 +50,8 @@
   <article class="panel chart-panel">
     <div class="panel-head">
       <div>
-        <h2>Price Bands</h2>
-        <p>官方价格区间</p>
+        <h2 data-i18n="chart.priceBands">Price Bands</h2>
+        <p data-i18n="chart.priceBandsDesc">官方价格区间</p>
       </div>
     </div>
     <div id="priceBucketChart" class="chart"></div>
@@ -60,8 +60,8 @@
   <article class="panel chart-panel">
     <div class="panel-head">
       <div>
-        <h2>Owned Amount</h2>
-        <p>已拥有商品按品牌金额</p>
+        <h2 data-i18n="chart.ownedAmount">Owned Amount</h2>
+        <p data-i18n="chart.ownedAmountDesc">已拥有商品按品牌金额</p>
       </div>
     </div>
     <div id="purchaseChart" class="chart"></div>
@@ -70,10 +70,10 @@
   <article class="panel chart-panel wide">
     <div class="panel-head">
       <div>
-        <h2>Price Trend</h2>
-        <p id="trendSubtitle">最新记录较多的商品</p>
+        <h2 data-i18n="chart.priceTrend">Price Trend</h2>
+        <p id="trendSubtitle" data-i18n="chart.priceTrendDesc">最新记录较多的商品</p>
       </div>
-      <select id="trendFigureSelect" class="control compact" aria-label="Choose figure for trend"></select>
+      <select id="trendFigureSelect" class="control compact" aria-label="Choose figure for trend" data-i18n-aria-label="aria.chooseTrendFigure"></select>
     </div>
     <div id="trendChart" class="chart tall"></div>
   </article>

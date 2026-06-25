@@ -14,15 +14,23 @@
         <span class="brand-symbol">FC</span>
         <span>
           <strong>Figure Console</strong>
-          <small>Collection & Price</small>
+          <small data-i18n="brand.subtitle">Collection & Price</small>
         </span>
       </a>
       <nav class="nav-list">
-        <a class="{{ 'active' if page == 'dashboard' else '' }}" href="/">Dashboard</a>
-        <a class="{{ 'active' if page == 'figures' else '' }}" href="/figures">Figures</a>
-        <a class="{{ 'active' if page == 'collection' else '' }}" href="/collection">Collection</a>
-        <a class="{{ 'active' if page == 'prices' else '' }}" href="/prices">Prices</a>
+        <a class="{{ 'active' if page == 'dashboard' else '' }}" href="/" data-i18n="nav.dashboard">Dashboard</a>
+        <a class="{{ 'active' if page == 'figures' else '' }}" href="/figures" data-i18n="nav.figures">Figures</a>
+        <a class="{{ 'active' if page == 'collection' else '' }}" href="/collection" data-i18n="nav.collection">Collection</a>
+        <a class="{{ 'active' if page == 'prices' else '' }}" href="/prices" data-i18n="nav.prices">Prices</a>
       </nav>
+      <div class="language-panel" aria-label="Language">
+        <span data-i18n="language.label">Language</span>
+        <div class="language-switch" role="group" aria-label="Language switcher">
+          <button class="language-button" type="button" data-lang="zh">中文</button>
+          <button class="language-button" type="button" data-lang="ja">日本語</button>
+          <button class="language-button" type="button" data-lang="en">EN</button>
+        </div>
+      </div>
       <div class="sidebar-note">
         <span>SQLite</span>
         <span>Flask API</span>

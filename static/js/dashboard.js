@@ -14,14 +14,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function renderMetrics(data) {
   const metrics = [
-    ["商品总数", data.total_figures, "商品主表记录", "#285a7f"],
-    ["已收藏", data.owned_count, "ownership_status = 所持", "#297c63"],
-    ["想买数量", data.wishlist_count, `预算 ${yen(data.wishlist_budget)}`, "#d85b7f"],
-    ["预约中", data.reserved_count, `预约预算 ${yen(data.reserved_budget)}`, "#b78a2e"],
-    ["收藏总金额", yen(data.total_purchase_amount), "已拥有购买价合计", "#111820"],
-    ["本月发售", data.monthly_release_count, "release_date 为当前月份", "#285a7f"],
-    ["限定商品", data.limited_count, "is_limited = 1", "#7f2d38"],
-    ["价格记录商品", data.default_trend_figure?.name || "-", "可查看价格趋势", "#297c63"],
+    [t("metric.totalFigures"), data.total_figures, t("metric.totalFiguresNote"), "#285a7f"],
+    [t("metric.owned"), data.owned_count, t("metric.ownedNote"), "#297c63"],
+    [t("metric.wishlist"), data.wishlist_count, t("metric.wishlistNote", { amount: yen(data.wishlist_budget) }), "#d85b7f"],
+    [t("metric.reserved"), data.reserved_count, t("metric.reservedNote", { amount: yen(data.reserved_budget) }), "#b78a2e"],
+    [t("metric.purchaseTotal"), yen(data.total_purchase_amount), t("metric.purchaseTotalNote"), "#111820"],
+    [t("metric.monthlyRelease"), data.monthly_release_count, t("metric.monthlyReleaseNote"), "#285a7f"],
+    [t("metric.limited"), data.limited_count, t("metric.limitedNote"), "#7f2d38"],
+    [t("metric.tracked"), data.default_trend_figure?.name || "-", t("metric.trackedNote"), "#297c63"],
   ];
   document.querySelector("#metricGrid").innerHTML = metrics
     .map(
@@ -36,7 +36,9 @@ function renderMetrics(data) {
     .join("");
 
   const next = data.monthly_releases?.[0];
-  document.querySelector("#nextReleaseLabel").textContent = next ? `${next.month} / ${next.count} items` : "No data";
+  document.querySelector("#nextReleaseLabel").textContent = next
+    ? t("dashboard.nextReleaseValue", { month: next.month, count: next.count })
+    : t("dashboard.noData");
 }
 
 function renderDashboardCharts(data) {
@@ -50,6 +52,10 @@ function renderDashboardCharts(data) {
 function pieChart(id, rows, nameKey, valueKey) {
   const chart = echarts.init(document.getElementById(id));
   dashboardCharts.push(chart);
+  const translatedRows = rows.map((row) => ({
+    ...row,
+    translatedName: nameKey === "status" ? statusLabel(row[nameKey]) : row[nameKey],
+  }));
   chart.setOption({
     color: ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820", "#8c97a6"],
     tooltip: { trigger: "item" },
@@ -60,7 +66,7 @@ function pieChart(id, rows, nameKey, valueKey) {
         radius: ["42%", "70%"],
         center: ["50%", "44%"],
         label: { formatter: "{b}\n{c}" },
-        data: rows.map((row) => ({ name: row[nameKey], value: row[valueKey] })),
+        data: translatedRows.map((row) => ({ name: row.translatedName, value: row[valueKey] })),
       },
     ],
   });
@@ -109,7 +115,7 @@ async function renderTrend(figureId) {
   }
   const shops = [...new Set(rows.map((row) => row.shop_name))];
   const dates = [...new Set(rows.map((row) => row.checked_date))].sort();
-  document.querySelector("#trendSubtitle").textContent = rows[0]?.name || "価格履歴";
+  document.querySelector("#trendSubtitle").textContent = rows[0]?.name || t("chart.priceTrendDesc");
   chart.setOption({
     color: ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820"],
     tooltip: { trigger: "axis", valueFormatter: yen },

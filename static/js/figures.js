@@ -39,10 +39,10 @@ async function loadFigures() {
 }
 
 function renderFigures(rows) {
-  document.querySelector("#resultCount").textContent = `${rows.length} items`;
+  document.querySelector("#resultCount").textContent = t("common.items", { count: rows.length });
   const tbody = document.querySelector("#figuresTable");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No figures found</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">${t("figures.empty")}</td></tr>`;
     return;
   }
   tbody.innerHTML = rows
@@ -62,16 +62,16 @@ function renderFigures(rows) {
         <td>${yen(row.official_price)}</td>
         <td>
           <span class="badge-row">
-            ${row.is_articulated ? badge("可動", "green") : badge("固定")}
-            ${row.is_limited ? badge("限定", "rose") : badge("一般")}
+            ${row.is_articulated ? badge(t("status.articulated"), "green") : badge(t("status.fixed"))}
+            ${row.is_limited ? badge(t("status.limited"), "rose") : badge(t("status.regular"))}
             ${row.height_mm ? badge(`${row.height_mm}mm`, "gold") : ""}
           </span>
         </td>
-        <td>${badge(row.status || "-", row.status === "予約中" ? "rose" : "")}</td>
+        <td>${badge(row.status ? statusLabel(row.status) : "-", row.status === "予約中" ? "rose" : "")}</td>
         <td>
           <div class="row-actions">
-            <button class="button small primary" data-action="collect" data-id="${row.id}" type="button">加入收藏</button>
-            <a class="button small secondary" href="${row.product_url || "#"}" target="_blank" rel="noreferrer">详情</a>
+            <button class="button small primary" data-action="collect" data-id="${row.id}" type="button">${t("figures.addCollection")}</button>
+            <a class="button small secondary" href="${row.product_url || "#"}" target="_blank" rel="noreferrer">${t("figures.detail")}</a>
           </div>
         </td>
       </tr>
@@ -89,8 +89,8 @@ async function onFigureAction(event) {
     body: JSON.stringify({
       figure_id: Number(button.dataset.id),
       ownership_status: "欲しい",
-      memo: `${figure?.name || "Figure"} を欲しいリストに追加`,
+      memo: `${figure?.name || "Figure"} ${t("figures.memoAdded")}`,
     }),
   });
-  toast("收藏已保存：欲しい");
+  toast(t("figures.saved"));
 }

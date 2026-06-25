@@ -28,7 +28,7 @@ async function savePrice(event) {
   });
   event.currentTarget.reset();
   document.querySelector("input[name='checked_date']").valueAsDate = new Date();
-  toast("价格记录已保存");
+  toast(t("prices.saved"));
   await loadPrices();
 }
 
@@ -40,10 +40,10 @@ async function loadPrices() {
 }
 
 function renderPrices(rows) {
-  document.querySelector("#priceCount").textContent = `${rows.length} records`;
+  document.querySelector("#priceCount").textContent = t("common.records", { count: rows.length });
   const tbody = document.querySelector("#pricesTable");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No price records</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${t("prices.empty")}</td></tr>`;
     return;
   }
   tbody.innerHTML = rows
@@ -58,11 +58,11 @@ function renderPrices(rows) {
         </td>
         <td>${row.shop_name}</td>
         <td>${yen(row.price)}</td>
-        <td>${badge(row.condition || "-", row.condition === "used" ? "gold" : "green")}</td>
+        <td>${badge(conditionLabel(row.condition), row.condition === "used" ? "gold" : "green")}</td>
         <td>${text(row.stock_status)}</td>
         <td>${row.checked_date}</td>
         <td>
-          <button class="button small danger" data-action="delete" data-id="${row.id}" type="button">删除</button>
+          <button class="button small danger" data-action="delete" data-id="${row.id}" type="button">${t("button.delete")}</button>
         </td>
       </tr>
     `,
@@ -74,6 +74,6 @@ async function onPriceAction(event) {
   const button = event.target.closest("button[data-action='delete']");
   if (!button) return;
   await api(`/api/prices/${button.dataset.id}`, { method: "DELETE" });
-  toast("价格记录已删除");
+  toast(t("prices.deleted"));
   await loadPrices();
 }

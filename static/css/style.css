@@ -115,6 +115,43 @@ select {
   color: #fff;
 }
 
+.language-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.language-panel > span {
+  color: rgba(248, 250, 252, 0.62);
+  font-size: 12px;
+}
+
+.language-switch {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.language-button {
+  min-height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(248, 250, 252, 0.72);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.language-button.active,
+.language-button:hover {
+  background: #f8fafc;
+  color: var(--nav);
+}
+
 .sidebar-note {
   display: flex;
   flex-wrap: wrap;
@@ -527,6 +564,10 @@ tbody tr:hover {
 
   .sidebar-note {
     display: none;
+  }
+
+  .language-panel {
+    padding: 8px;
   }
 
   .content {

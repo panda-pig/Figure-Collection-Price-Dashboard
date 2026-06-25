@@ -5,8 +5,8 @@
 {% block content %}
 <header class="page-header">
   <div>
-    <p class="eyebrow">価格履歴</p>
-    <h1>Prices</h1>
+    <p class="eyebrow" data-i18n="prices.eyebrow">価格履歴</p>
+    <h1 data-i18n="prices.title">Prices</h1>
   </div>
 </header>
 
@@ -14,65 +14,65 @@
   <form id="priceForm" class="panel form-panel">
     <div class="panel-head">
       <div>
-        <h2>Add Price Record</h2>
-        <p>不同平台、日期、状态都可以独立记录</p>
+        <h2 data-i18n="prices.addRecord">Add Price Record</h2>
+        <p data-i18n="prices.addRecordDesc">不同平台、日期、状态都可以独立记录</p>
       </div>
     </div>
     <label>
-      <span>Figure</span>
+      <span data-i18n="table.figure">Figure</span>
       <select id="figureSelect" name="figure_id" class="control" required></select>
     </label>
     <label>
-      <span>Shop</span>
-      <input name="shop_name" class="control" placeholder="あみあみ / 駿河屋 / メルカリ" required>
+      <span data-i18n="prices.shop">Shop</span>
+      <input name="shop_name" class="control" placeholder="あみあみ / 駿河屋 / メルカリ" data-i18n-placeholder="prices.shopPlaceholder" required>
     </label>
     <label>
-      <span>Price</span>
+      <span data-i18n="common.price">Price</span>
       <input name="price" class="control" type="number" min="0" step="1" required>
     </label>
     <div class="field-grid">
       <label>
-        <span>Condition</span>
+        <span data-i18n="prices.condition">Condition</span>
         <select name="condition" class="control">
-          <option value="new">new</option>
-          <option value="used">used</option>
+          <option value="new" data-i18n="condition.new">new</option>
+          <option value="used" data-i18n="condition.used">used</option>
         </select>
       </label>
       <label>
-        <span>Stock</span>
-        <input name="stock_status" class="control" placeholder="予約中 / 在庫あり">
+        <span data-i18n="prices.stock">Stock</span>
+        <input name="stock_status" class="control" placeholder="予約中 / 在庫あり" data-i18n-placeholder="prices.stockPlaceholder">
       </label>
     </div>
     <label>
-      <span>Date</span>
+      <span data-i18n="prices.date">Date</span>
       <input name="checked_date" class="control" type="date" required>
     </label>
     <label>
       <span>URL</span>
       <input name="product_url" class="control" type="url" placeholder="https://">
     </label>
-    <button class="button primary" type="submit">Save Price</button>
+    <button class="button primary" type="submit" data-i18n="prices.savePrice">Save Price</button>
   </form>
 
   <section class="panel table-panel">
     <div class="panel-head">
       <div>
-        <h2>Price Records</h2>
-        <p id="priceCount">Loading</p>
+        <h2 data-i18n="prices.records">Price Records</h2>
+        <p id="priceCount" data-i18n="common.loading">Loading</p>
       </div>
-      <select id="priceFigureFilter" class="control compact" aria-label="Filter price records by figure"></select>
+      <select id="priceFigureFilter" class="control compact" aria-label="Filter price records by figure" data-i18n-aria-label="aria.filterPriceFigure"></select>
     </div>
     <div class="table-scroll">
       <table>
         <thead>
           <tr>
-            <th>商品</th>
-            <th>店铺</th>
-            <th>价格</th>
-            <th>状态</th>
-            <th>库存</th>
-            <th>日期</th>
-            <th>操作</th>
+            <th data-i18n="table.figure">商品</th>
+            <th data-i18n="prices.shop">店铺</th>
+            <th data-i18n="common.price">价格</th>
+            <th data-i18n="prices.condition">状态</th>
+            <th data-i18n="prices.stock">库存</th>
+            <th data-i18n="prices.date">日期</th>
+            <th data-i18n="table.actions">操作</th>
           </tr>
         </thead>
         <tbody id="pricesTable"></tbody>

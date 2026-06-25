@@ -4,7 +4,10 @@ let collectionOptions = {};
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     collectionOptions = await api("/api/options");
-    setOptions(document.querySelector("#ownershipFilter"), collectionOptions.ownership_statuses);
+    setOptions(
+      document.querySelector("#ownershipFilter"),
+      collectionOptions.ownership_statuses.map((status) => ({ id: status, label: statusLabel(status) })),
+    );
     setOptions(document.querySelector("#brandFilter"), collectionOptions.brands);
     document.querySelector("#ownershipFilter").addEventListener("change", loadCollection);
     document.querySelector("#brandFilter").addEventListener("change", loadCollection);
@@ -31,10 +34,10 @@ async function loadCollection() {
 }
 
 function renderCollection(rows) {
-  document.querySelector("#collectionCount").textContent = `${rows.length} records`;
+  document.querySelector("#collectionCount").textContent = t("common.records", { count: rows.length });
   const tbody = document.querySelector("#collectionTable");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No collection records</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${t("collection.empty")}</td></tr>`;
     return;
   }
   tbody.innerHTML = rows
@@ -50,7 +53,7 @@ function renderCollection(rows) {
         <td>
           <select class="inline-input" data-field="ownership_status">
             ${collectionOptions.ownership_statuses
-              .map((status) => `<option value="${status}" ${row.ownership_status === status ? "selected" : ""}>${status}</option>`)
+              .map((status) => `<option value="${status}" ${row.ownership_status === status ? "selected" : ""}>${statusLabel(status)}</option>`)
               .join("")}
           </select>
         </td>
@@ -61,8 +64,8 @@ function renderCollection(rows) {
         <td><input class="inline-input memo-input" data-field="memo" value="${text(row.memo, "")}"></td>
         <td>
           <div class="row-actions">
-            <button class="button small primary" data-action="save" type="button">保存</button>
-            <button class="button small danger" data-action="delete" type="button">删除</button>
+            <button class="button small primary" data-action="save" type="button">${t("button.save")}</button>
+            <button class="button small danger" data-action="delete" type="button">${t("button.delete")}</button>
           </div>
         </td>
       </tr>
@@ -78,7 +81,7 @@ async function onCollectionAction(event) {
   const id = tr.dataset.id;
   if (button.dataset.action === "delete") {
     await api(`/api/collection/${id}`, { method: "DELETE" });
-    toast("收藏记录已删除");
+    toast(t("collection.deleted"));
     await loadCollection();
     return;
   }
@@ -90,6 +93,6 @@ async function onCollectionAction(event) {
     method: "PUT",
     body: JSON.stringify(payload),
   });
-  toast("收藏记录已更新");
+  toast(t("collection.saved"));
   await loadCollection();
 }
