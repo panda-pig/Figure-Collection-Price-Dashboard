@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -9,7 +10,7 @@ from flask import Flask, g, jsonify, render_template, request
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "database.db"
+DATABASE = Path(os.environ.get("FIGURE_DASHBOARD_DB", "/tmp/figure_dashboard.db" if os.environ.get("VERCEL") else BASE_DIR / "database.db"))
 
 app = Flask(__name__)
 
