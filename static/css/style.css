@@ -152,11 +152,16 @@ select {
   color: var(--nav);
 }
 
+.sidebar-bottom {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+}
+
 .sidebar-note {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: auto;
 }
 
 .sidebar-note span {
@@ -564,6 +569,10 @@ tbody tr:hover {
 
   .sidebar-note {
     display: none;
+  }
+
+  .sidebar-bottom {
+    margin-top: 0;
   }
 
   .language-panel {

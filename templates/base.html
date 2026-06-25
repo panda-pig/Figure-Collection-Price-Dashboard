@@ -23,18 +23,20 @@
         <a class="{{ 'active' if page == 'collection' else '' }}" href="/collection" data-i18n="nav.collection">Collection</a>
         <a class="{{ 'active' if page == 'prices' else '' }}" href="/prices" data-i18n="nav.prices">Prices</a>
       </nav>
-      <div class="language-panel" aria-label="Language">
-        <span data-i18n="language.label">Language</span>
-        <div class="language-switch" role="group" aria-label="Language switcher">
-          <button class="language-button" type="button" data-lang="zh">中文</button>
-          <button class="language-button" type="button" data-lang="ja">日本語</button>
-          <button class="language-button" type="button" data-lang="en">EN</button>
+      <div class="sidebar-bottom">
+        <div class="language-panel" aria-label="Language">
+          <span data-i18n="language.label">Language</span>
+          <div class="language-switch" role="group" aria-label="Language switcher">
+            <button class="language-button" type="button" data-lang="zh">中文</button>
+            <button class="language-button" type="button" data-lang="ja">日本語</button>
+            <button class="language-button" type="button" data-lang="en">EN</button>
+          </div>
         </div>
-      </div>
-      <div class="sidebar-note">
-        <span>SQLite</span>
-        <span>Flask API</span>
-        <span>ECharts</span>
+        <div class="sidebar-note">
+          <span>SQLite</span>
+          <span>Flask API</span>
+          <span>ECharts</span>
+        </div>
       </div>
     </aside>
 
