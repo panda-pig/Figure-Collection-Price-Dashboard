@@ -1,0 +1,31 @@
+figure_name,shop_name,price,condition,stock_status,checked_date,product_url
+S.H.Figuarts 孫悟空,プレミアムバンダイ,7700,new,予約中,2026-06-01,https://example.com/goku/pb
+S.H.Figuarts 孫悟空,あみあみ,7315,new,予約中,2026-06-08,https://example.com/goku/ami
+S.H.Figuarts 孫悟空,駿河屋,9800,used,在庫あり,2026-06-25,https://example.com/goku/suruga
+S.H.Figuarts ベジータ,あみあみ,7840,new,予約中,2026-06-10,https://example.com/vegeta/ami
+S.H.Figuarts ベジータ,駿河屋,8600,used,在庫あり,2026-06-25,https://example.com/vegeta/suruga
+S.H.Figuarts 仮面ライダーBLACK SUN,プレミアムバンダイ,8800,new,予約中,2026-06-15,https://example.com/black-sun/pb
+S.H.MonsterArts ゴジラ,プレミアムバンダイ,13200,new,予約中,2026-06-12,https://example.com/godzilla/pb
+ROBOT魂 ガンダム・エアリアル,あみあみ,9300,new,予約中,2026-06-18,https://example.com/aerial/ami
+METAL BUILD ストライクガンダム,プレミアムバンダイ,35200,new,抽選予定,2026-06-19,https://example.com/strike/pb
+figma ブリジット,あみあみ,11900,new,予約中,2026-06-03,https://example.com/bridget/ami
+figma ブリジット,駿河屋,12800,new,予約中,2026-06-23,https://example.com/bridget/suruga
+figma 初音ミク V4X,あみあみ,11200,new,在庫あり,2026-06-06,https://example.com/miku-v4x/ami
+figma 初音ミク V4X,駿河屋,12500,used,在庫あり,2026-06-20,https://example.com/miku-v4x/suruga
+figma 兎田ぺこら,あみあみ,13100,new,予約中,2026-06-14,https://example.com/pekora/ami
+ねんどろいど 初音ミク,Good Smile Online,6900,new,予約中,2026-06-05,https://example.com/nendo-miku/gsc
+ねんどろいど 初音ミク,駿河屋,7200,used,在庫あり,2026-06-25,https://example.com/nendo-miku/suruga
+ねんどろいど 星街すいせい,Good Smile Online,7200,new,予約中,2026-06-07,https://example.com/suisei/gsc
+ねんどろいど ちいかわ,あみあみ,5900,new,在庫少,2026-06-11,https://example.com/chiikawa/ami
+POP UP PARADE ライザ,あみあみ,4500,new,予約中,2026-06-09,https://example.com/ryza/ami
+POP UP PARADE ライザ,駿河屋,5300,used,在庫あり,2026-06-25,https://example.com/ryza/suruga
+POP UP PARADE ホロ,Good Smile Online,5500,new,予約中,2026-06-16,https://example.com/holo/gsc
+ARTFX J 緑谷出久,Amazon JP,13500,new,在庫あり,2026-06-17,https://example.com/deku/amazon
+ARTFX J 緑谷出久,駿河屋,11800,used,在庫あり,2026-06-25,https://example.com/deku/suruga
+ARTFX J 爆豪勝己,Amazon JP,13980,new,在庫あり,2026-06-17,https://example.com/bakugo/amazon
+スケールフィギュア アスカ,Kotobukiya Online,19800,new,予約中,2026-06-13,https://example.com/asuka/koto
+スケールフィギュア レム,Kadokawa Store,17600,new,予約中,2026-06-13,https://example.com/rem/kadokawa
+フィギュアーツZERO ルフィ,あみあみ,8900,new,予約中,2026-06-21,https://example.com/luffy/ami
+フィギュアーツZERO ルフィ,駿河屋,9600,used,在庫あり,2026-06-25,https://example.com/luffy/suruga
+フィギュアーツZERO ゾロ,プレミアムバンダイ,9900,new,予約中,2026-06-22,https://example.com/zoro/pb
+フィギュアーツZERO ゾロ,メルカリ,10800,used,出品中,2026-06-25,https://example.com/zoro/mercari

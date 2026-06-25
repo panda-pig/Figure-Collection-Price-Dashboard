@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Figures | Figure Collection{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div>
+    <p class="eyebrow">商品マスター</p>
+    <h1>Figures</h1>
+  </div>
+  <button id="clearFilters" class="button secondary" type="button">Reset</button>
+</header>
+
+<section class="panel filters" aria-label="Figure filters">
+  <label>
+    <span>Search</span>
+    <input id="keyword" class="control" type="search" placeholder="商品名 / 作品 / ブランド">
+  </label>
+  <label>
+    <span>Brand</span>
+    <select id="brand" class="control"></select>
+  </label>
+  <label>
+    <span>Series</span>
+    <select id="series_title" class="control"></select>
+  </label>
+  <label>
+    <span>Price</span>
+    <select id="priceRange" class="control">
+      <option value="">All</option>
+      <option value="0-5000">5000円以下</option>
+      <option value="0-10000">10000円以下</option>
+      <option value="10000-">10000円以上</option>
+    </select>
+  </label>
+  <label>
+    <span>Limited</span>
+    <select id="is_limited" class="control">
+      <option value="">All</option>
+      <option value="1">限定</option>
+      <option value="0">一般</option>
+    </select>
+  </label>
+  <label>
+    <span>Articulation</span>
+    <select id="is_articulated" class="control">
+      <option value="">All</option>
+      <option value="1">可動</option>
+      <option value="0">不可動</option>
+    </select>
+  </label>
+</section>
+
+<section class="panel table-panel">
+  <div class="panel-head">
+    <div>
+      <h2>Product List</h2>
+      <p id="resultCount">Loading</p>
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>商品名</th>
+          <th>ブランド</th>
+          <th>作品</th>
+          <th>メーカー</th>
+          <th>発売</th>
+          <th>価格</th>
+          <th>属性</th>
+          <th>状態</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="figuresTable"></tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/figures.js') }}"></script>
+{% endblock %}

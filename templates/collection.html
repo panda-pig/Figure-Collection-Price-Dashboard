@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Collection | Figure Collection{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div>
+    <p class="eyebrow">所有状況管理</p>
+    <h1>Collection</h1>
+  </div>
+</header>
+
+<section class="panel filters" aria-label="Collection filters">
+  <label>
+    <span>Status</span>
+    <select id="ownershipFilter" class="control"></select>
+  </label>
+  <label>
+    <span>Brand</span>
+    <select id="brandFilter" class="control"></select>
+  </label>
+  <button id="clearCollectionFilters" class="button secondary" type="button">Reset</button>
+</section>
+
+<section class="panel table-panel">
+  <div class="panel-head">
+    <div>
+      <h2>Collection Records</h2>
+      <p id="collectionCount">Loading</p>
+    </div>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>商品</th>
+          <th>状態</th>
+          <th>購入価格</th>
+          <th>購入平台</th>
+          <th>購入日</th>
+          <th>開封</th>
+          <th>メモ</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="collectionTable"></tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/collection.js') }}"></script>
+{% endblock %}

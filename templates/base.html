@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Figure Collection Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand-mark" href="/">
+        <span class="brand-symbol">FC</span>
+        <span>
+          <strong>Figure Console</strong>
+          <small>Collection & Price</small>
+        </span>
+      </a>
+      <nav class="nav-list">
+        <a class="{{ 'active' if page == 'dashboard' else '' }}" href="/">Dashboard</a>
+        <a class="{{ 'active' if page == 'figures' else '' }}" href="/figures">Figures</a>
+        <a class="{{ 'active' if page == 'collection' else '' }}" href="/collection">Collection</a>
+        <a class="{{ 'active' if page == 'prices' else '' }}" href="/prices">Prices</a>
+      </nav>
+      <div class="sidebar-note">
+        <span>SQLite</span>
+        <span>Flask API</span>
+        <span>ECharts</span>
+      </div>
+    </aside>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

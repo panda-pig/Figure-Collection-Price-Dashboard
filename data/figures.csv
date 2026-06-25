@@ -1,0 +1,21 @@
+name,brand,series_title,manufacturer,release_date,official_price,height_mm,scale,is_articulated,is_limited,status,product_url,image_url,source
+S.H.Figuarts 孫悟空,S.H.Figuarts,ドラゴンボール,BANDAI SPIRITS,2026-08,7700,145,non-scale,1,0,予約中,https://example.com/goku,,sample
+S.H.Figuarts ベジータ,S.H.Figuarts,ドラゴンボール,BANDAI SPIRITS,2026-09,8250,135,non-scale,1,0,発売予定,https://example.com/vegeta,,sample
+S.H.Figuarts 仮面ライダーBLACK SUN,S.H.Figuarts,仮面ライダー,BANDAI SPIRITS,2026-07,8800,150,non-scale,1,1,予約中,https://example.com/black-sun,,sample
+S.H.MonsterArts ゴジラ,S.H.MonsterArts,ゴジラ,BANDAI SPIRITS,2026-11,13200,160,non-scale,1,1,発売予定,https://example.com/godzilla,,sample
+ROBOT魂 ガンダム・エアリアル,ROBOT魂,機動戦士ガンダム,BANDAI SPIRITS,2026-08,9900,125,non-scale,1,0,予約中,https://example.com/aerial,,sample
+METAL BUILD ストライクガンダム,METAL BUILD,機動戦士ガンダムSEED,BANDAI SPIRITS,2026-12,35200,180,non-scale,1,1,発売予定,https://example.com/strike,,sample
+figma ブリジット,figma,GUILTY GEAR,Max Factory,2026-10,12800,140,non-scale,1,0,発売予定,https://example.com/bridget,,sample
+figma 初音ミク V4X,figma,VOCALOID,Max Factory,2026-06,11800,135,non-scale,1,0,発売済み,https://example.com/miku-v4x,,sample
+figma 兎田ぺこら,figma,hololive,Max Factory,2026-09,13800,145,non-scale,1,0,予約中,https://example.com/pekora,,sample
+ねんどろいど 初音ミク,ねんどろいど,VOCALOID,Good Smile Company,2026-09,6900,100,non-scale,0,0,発売予定,https://example.com/nendo-miku,,sample
+ねんどろいど 星街すいせい,ねんどろいど,hololive,Good Smile Company,2026-08,7200,100,non-scale,0,0,予約中,https://example.com/suisei,,sample
+ねんどろいど ちいかわ,ねんどろいど,ちいかわ,Good Smile Company,2026-06,6200,90,non-scale,0,0,発売済み,https://example.com/chiikawa,,sample
+POP UP PARADE ライザ,POP UP PARADE,ライザのアトリエ,Good Smile Company,2026-07,4800,170,non-scale,0,0,発売予定,https://example.com/ryza,,sample
+POP UP PARADE ホロ,POP UP PARADE,狼と香辛料,Good Smile Company,2026-10,5500,165,non-scale,0,0,予約中,https://example.com/holo,,sample
+ARTFX J 緑谷出久,ARTFX J,僕のヒーローアカデミア,Kotobukiya,2026-05,14300,210,1/8,0,0,発売済み,https://example.com/deku,,sample
+ARTFX J 爆豪勝己,ARTFX J,僕のヒーローアカデミア,Kotobukiya,2026-06,14800,205,1/8,0,0,発売済み,https://example.com/bakugo,,sample
+スケールフィギュア アスカ,Scale Figure,エヴァンゲリオン,Kotobukiya,2026-12,19800,230,1/7,0,1,発売予定,https://example.com/asuka,,sample
+スケールフィギュア レム,Scale Figure,Re:ゼロ,Kadokawa,2026-07,17600,225,1/7,0,0,発売予定,https://example.com/rem,,sample
+フィギュアーツZERO ルフィ,フィギュアーツZERO,ONE PIECE,BANDAI SPIRITS,2026-08,9350,170,non-scale,0,0,予約中,https://example.com/luffy,,sample
+フィギュアーツZERO ゾロ,フィギュアーツZERO,ONE PIECE,BANDAI SPIRITS,2026-11,9900,180,non-scale,0,1,発売予定,https://example.com/zoro,,sample

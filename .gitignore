@@ -1,0 +1,22 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Local environment
+.venv/
+venv/
+.env
+.env.*
+
+# Runtime data
+database.db
+*.sqlite
+*.sqlite3
+
+# Source planning / local notes
+figure_collection_price_dashboard_prd.md
+docs/
