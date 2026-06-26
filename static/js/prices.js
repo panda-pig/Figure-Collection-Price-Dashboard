@@ -43,9 +43,10 @@ function renderPrices(rows) {
   document.querySelector("#priceCount").textContent = t("common.records", { count: rows.length });
   const tbody = document.querySelector("#pricesTable");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">${t("prices.empty")}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${t("prices.empty")}</td></tr>`;
     return;
   }
+  const movements = priceMovements(rows);
   tbody.innerHTML = rows
     .map(
       (row) => `
@@ -58,6 +59,7 @@ function renderPrices(rows) {
         </td>
         <td>${row.shop_name}</td>
         <td>${yen(row.price)}</td>
+        <td>${movementBadge(movements[row.id])}</td>
         <td>${badge(conditionLabel(row.condition), row.condition === "used" ? "gold" : "green")}</td>
         <td>${text(row.stock_status)}</td>
         <td>${row.checked_date}</td>
@@ -73,6 +75,7 @@ function renderPrices(rows) {
 async function onPriceAction(event) {
   const button = event.target.closest("button[data-action='delete']");
   if (!button) return;
+  if (!window.confirm(t("common.confirmDelete"))) return;
   await api(`/api/prices/${button.dataset.id}`, { method: "DELETE" });
   toast(t("prices.deleted"));
   await loadPrices();

@@ -37,7 +37,7 @@ function renderCollection(rows) {
   document.querySelector("#collectionCount").textContent = t("common.records", { count: rows.length });
   const tbody = document.querySelector("#collectionTable");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${t("collection.empty")}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">${t("collection.empty")}</td></tr>`;
     return;
   }
   tbody.innerHTML = rows
@@ -61,6 +61,7 @@ function renderCollection(rows) {
         <td><input class="inline-input" data-field="purchase_shop" value="${text(row.purchase_shop, "")}"></td>
         <td><input class="inline-input" data-field="purchase_date" type="date" value="${text(row.purchase_date, "")}"></td>
         <td><input data-field="is_opened" type="checkbox" ${row.is_opened ? "checked" : ""}></td>
+        <td><input class="inline-input" data-field="display_location" value="${text(row.display_location, "")}"></td>
         <td><input class="inline-input memo-input" data-field="memo" value="${text(row.memo, "")}"></td>
         <td>
           <div class="row-actions">
@@ -80,6 +81,7 @@ async function onCollectionAction(event) {
   const tr = button.closest("tr");
   const id = tr.dataset.id;
   if (button.dataset.action === "delete") {
+    if (!window.confirm(t("common.confirmDelete"))) return;
     await api(`/api/collection/${id}`, { method: "DELETE" });
     toast(t("collection.deleted"));
     await loadCollection();

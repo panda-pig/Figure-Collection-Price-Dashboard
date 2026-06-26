@@ -1,10 +1,22 @@
 let figuresState = [];
+let figureOptions = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const options = await api("/api/options");
-    setOptions(document.querySelector("#brand"), options.brands);
-    setOptions(document.querySelector("#series_title"), options.series);
+    figureOptions = await api("/api/options");
+    setOptions(document.querySelector("#brand"), figureOptions.brands);
+    setOptions(document.querySelector("#series_title"), figureOptions.series);
+    setOptions(document.querySelector("#manufacturer"), figureOptions.manufacturers);
+    setOptions(document.querySelector("#release_month"), figureOptions.release_months);
+    setOptions(
+      document.querySelector("#status"),
+      figureOptions.statuses.map((status) => ({ id: status, label: statusLabel(status) })),
+    );
+    setOptions(
+      document.querySelector("#collectionStatus"),
+      figureOptions.ownership_statuses.map((status) => ({ id: status, label: statusLabel(status) })),
+      null,
+    );
     document.querySelectorAll(".filters input, .filters select").forEach((el) => {
       el.addEventListener("input", loadFigures);
       el.addEventListener("change", loadFigures);
@@ -16,6 +28,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadFigures();
     });
     document.querySelector("#figuresTable").addEventListener("click", onFigureAction);
+    document.querySelector("#collectionForm").addEventListener("submit", saveCollectionFromDialog);
+    document.querySelector("#closeCollectionDialog").addEventListener("click", closeCollectionDialog);
+    document.querySelector("#collectionForm [data-action='cancel']").addEventListener("click", closeCollectionDialog);
     await loadFigures();
   } catch (error) {
     toast(error.message);
@@ -24,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function loadFigures() {
   const params = new URLSearchParams();
-  ["keyword", "brand", "series_title", "is_limited", "is_articulated"].forEach((id) => {
+  ["keyword", "brand", "series_title", "manufacturer", "release_month", "status", "is_limited", "is_articulated"].forEach((id) => {
     const value = document.querySelector(`#${id}`).value;
     if (value) params.set(id, value);
   });
@@ -71,7 +86,7 @@ function renderFigures(rows) {
         <td>
           <div class="row-actions">
             <button class="button small primary" data-action="collect" data-id="${row.id}" type="button">${t("figures.addCollection")}</button>
-            <a class="button small secondary" href="${row.product_url || "#"}" target="_blank" rel="noreferrer">${t("figures.detail")}</a>
+            <a class="button small secondary" href="/figures/${row.id}">${t("figures.detail")}</a>
           </div>
         </td>
       </tr>
@@ -84,13 +99,39 @@ async function onFigureAction(event) {
   const button = event.target.closest("button[data-action='collect']");
   if (!button) return;
   const figure = figuresState.find((item) => String(item.id) === button.dataset.id);
+  openCollectionDialog(figure);
+}
+
+function openCollectionDialog(figure) {
+  if (!figure) return;
+  const dialog = document.querySelector("#collectionDialog");
+  const form = document.querySelector("#collectionForm");
+  form.reset();
+  document.querySelector("#collectionFigureId").value = figure.id;
+  document.querySelector("#collectionFigureName").textContent = `${figure.name} / ${figure.brand}`;
+  document.querySelector("#collectionStatus").value = "欲しい";
+  dialog.showModal();
+}
+
+function closeCollectionDialog() {
+  document.querySelector("#collectionDialog").close();
+}
+
+async function saveCollectionFromDialog(event) {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  const payload = Object.fromEntries(formData.entries());
+  payload.figure_id = Number(payload.figure_id);
+  payload.purchase_price = payload.purchase_price ? Number(payload.purchase_price) : null;
+  payload.is_opened = formData.has("is_opened");
+  if (!payload.memo) {
+    const figure = figuresState.find((item) => item.id === payload.figure_id);
+    payload.memo = `${figure?.name || "Figure"} ${t("figures.memoAdded")}`;
+  }
   await api("/api/collection", {
     method: "POST",
-    body: JSON.stringify({
-      figure_id: Number(button.dataset.id),
-      ownership_status: "欲しい",
-      memo: `${figure?.name || "Figure"} ${t("figures.memoAdded")}`,
-    }),
+    body: JSON.stringify(payload),
   });
+  closeCollectionDialog();
   toast(t("figures.saved"));
 }

@@ -2,24 +2,34 @@ from __future__ import annotations
 
 import csv
 import os
-import sqlite3
 from pathlib import Path
 from typing import Any
 
 from flask import Flask, g, jsonify, render_template, request
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Connection, Row
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = Path(os.environ.get("FIGURE_DASHBOARD_DB", "/tmp/figure_dashboard.db" if os.environ.get("VERCEL") else BASE_DIR / "database.db"))
+DATABASE_FILE = Path(os.environ.get("FIGURE_DASHBOARD_DB", "/tmp/figure_dashboard.db" if os.environ.get("VERCEL") else BASE_DIR / "database.db"))
+RAW_DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = RAW_DATABASE_URL or f"sqlite:///{DATABASE_FILE}"
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+DB_KIND = "postgres" if DATABASE_URL.startswith("postgresql") else "sqlite"
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+_schema_ready = False
 
 app = Flask(__name__)
 
 
-def get_db() -> sqlite3.Connection:
+def get_db() -> Connection:
     if "db" not in g:
-        g.db = sqlite3.connect(DATABASE)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
+        g.db = engine.connect()
+        if DB_KIND == "sqlite":
+            g.db.execute(text("PRAGMA foreign_keys = ON"))
     return g.db
 
 
@@ -30,8 +40,43 @@ def close_db(_: Exception | None) -> None:
         db.close()
 
 
-def row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
-    return dict(row) if row is not None else None
+def prepare_sql(sql: str, params: tuple[Any, ...] | list[Any] | dict[str, Any] | None = None) -> tuple[Any, dict[str, Any]]:
+    if params is None:
+        return text(sql), {}
+    if isinstance(params, dict):
+        return text(sql), params
+    bind_params: dict[str, Any] = {}
+    prepared = sql
+    for index, value in enumerate(params):
+        name = f"p{index}"
+        prepared = prepared.replace("?", f":{name}", 1)
+        bind_params[name] = value
+    return text(prepared), bind_params
+
+
+def execute_db(db: Connection, sql: str, params: tuple[Any, ...] | list[Any] | dict[str, Any] | None = None):
+    statement, bind_params = prepare_sql(sql, params)
+    return db.execute(statement, bind_params)
+
+
+def row_to_dict(row: Row[Any] | Any | None) -> dict[str, Any] | None:
+    if row is None:
+        return None
+    if hasattr(row, "_mapping"):
+        return dict(row._mapping)
+    return dict(row)
+
+
+def row_value(row: Row[Any] | Any, key: str) -> Any:
+    return row_to_dict(row)[key]
+
+
+def result_insert_id(result) -> int | None:
+    if result.returns_rows:
+        row = result.fetchone()
+        if row is not None:
+            return int(row_value(row, "id"))
+    return int(result.lastrowid) if result.lastrowid is not None else None
 
 
 def int_or_none(value: Any) -> int | None:
@@ -44,24 +89,36 @@ def bool_int(value: Any) -> int:
     return 1 if str(value).lower() in {"1", "true", "yes", "on"} else 0
 
 
-def init_database(seed: bool = True) -> None:
-    db = sqlite3.connect(DATABASE)
-    db.row_factory = sqlite3.Row
-    db.execute("PRAGMA foreign_keys = ON")
-    schema = (BASE_DIR / "schema.sql").read_text(encoding="utf-8")
-    db.executescript(schema)
-    if seed:
-        import_figures(db, BASE_DIR / "data" / "figures.csv")
-        import_prices(db, BASE_DIR / "data" / "price_records.csv")
-        import_collection(db, BASE_DIR / "data" / "collection.csv")
-    db.commit()
-    db.close()
+def run_sql_script(db: Connection, sql: str) -> None:
+    for statement in sql.split(";"):
+        if statement.strip():
+            execute_db(db, statement)
 
 
-def import_figures(db: sqlite3.Connection, csv_path: Path) -> None:
+def init_database(seed: bool = True, reset: bool = True) -> None:
+    schema_name = "schema_postgres.sql" if DB_KIND == "postgres" else "schema.sql"
+    schema = (BASE_DIR / schema_name).read_text(encoding="utf-8")
+    with engine.begin() as db:
+        if DB_KIND == "sqlite":
+            execute_db(db, "PRAGMA foreign_keys = ON")
+        if reset or DB_KIND == "postgres":
+            run_sql_script(db, schema)
+        if seed and table_count(db, "figures") == 0:
+            import_figures(db, BASE_DIR / "data" / "figures.csv")
+            import_prices(db, BASE_DIR / "data" / "price_records.csv")
+            import_collection(db, BASE_DIR / "data" / "collection.csv")
+
+
+def table_count(db: Connection, table_name: str) -> int:
+    row = execute_db(db, f"SELECT COUNT(*) AS count FROM {table_name}").fetchone()
+    return int(row_value(row, "count"))
+
+
+def import_figures(db: Connection, csv_path: Path) -> None:
     with csv_path.open(encoding="utf-8-sig", newline="") as file:
         for row in csv.DictReader(file):
-            db.execute(
+            execute_db(
+                db,
                 """
                 INSERT INTO figures (
                     name, brand, series_title, manufacturer, release_date,
@@ -89,17 +146,18 @@ def import_figures(db: sqlite3.Connection, csv_path: Path) -> None:
             )
 
 
-def figure_id_by_name(db: sqlite3.Connection, name: str) -> int:
-    row = db.execute("SELECT id FROM figures WHERE name = ?", (name,)).fetchone()
+def figure_id_by_name(db: Connection, name: str) -> int:
+    row = execute_db(db, "SELECT id FROM figures WHERE name = ?", (name,)).fetchone()
     if row is None:
         raise ValueError(f"Figure not found: {name}")
-    return int(row["id"])
+    return int(row_value(row, "id"))
 
 
-def import_prices(db: sqlite3.Connection, csv_path: Path) -> None:
+def import_prices(db: Connection, csv_path: Path) -> None:
     with csv_path.open(encoding="utf-8-sig", newline="") as file:
         for row in csv.DictReader(file):
-            db.execute(
+            execute_db(
+                db,
                 """
                 INSERT INTO price_records (
                     figure_id, shop_name, price, condition, stock_status,
@@ -119,10 +177,11 @@ def import_prices(db: sqlite3.Connection, csv_path: Path) -> None:
             )
 
 
-def import_collection(db: sqlite3.Connection, csv_path: Path) -> None:
+def import_collection(db: Connection, csv_path: Path) -> None:
     with csv_path.open(encoding="utf-8-sig", newline="") as file:
         for row in csv.DictReader(file):
-            db.execute(
+            execute_db(
+                db,
                 """
                 INSERT INTO collection (
                     figure_id, ownership_status, purchase_price, purchase_shop,
@@ -144,8 +203,14 @@ def import_collection(db: sqlite3.Connection, csv_path: Path) -> None:
 
 
 def ensure_database() -> None:
-    if not DATABASE.exists():
-        init_database(seed=True)
+    global _schema_ready
+    if DB_KIND == "sqlite":
+        if not DATABASE_FILE.exists():
+            init_database(seed=True)
+        return
+    if not _schema_ready:
+        init_database(seed=True, reset=False)
+        _schema_ready = True
 
 
 @app.before_request
@@ -161,6 +226,11 @@ def dashboard_page() -> str:
 @app.route("/figures")
 def figures_page() -> str:
     return render_template("figures.html", page="figures")
+
+
+@app.route("/figures/<int:figure_id>")
+def figure_detail_page(figure_id: int) -> str:
+    return render_template("figure_detail.html", page="figures", figure_id=figure_id)
 
 
 @app.route("/collection")
@@ -193,6 +263,11 @@ def get_figures():
             query += f" AND {column} = ?"
             params.append(value)
 
+    release_month = request.args.get("release_month")
+    if release_month:
+        query += " AND substr(release_date, 1, 7) = ?"
+        params.append(release_month)
+
     keyword = request.args.get("keyword")
     if keyword:
         query += """
@@ -214,13 +289,13 @@ def get_figures():
         params.append(int(max_price))
 
     query += " ORDER BY release_date IS NULL, release_date, brand, name"
-    rows = get_db().execute(query, params).fetchall()
+    rows = execute_db(get_db(), query, params).fetchall()
     return jsonify([row_to_dict(row) for row in rows])
 
 
 @app.get("/api/figures/<int:figure_id>")
 def get_figure(figure_id: int):
-    row = get_db().execute("SELECT * FROM figures WHERE id = ?", (figure_id,)).fetchone()
+    row = execute_db(get_db(), "SELECT * FROM figures WHERE id = ?", (figure_id,)).fetchone()
     if row is None:
         return jsonify({"error": "figure not found"}), 404
     return jsonify(row_to_dict(row))
@@ -232,7 +307,8 @@ def create_figure():
     if not data.get("name"):
         return jsonify({"error": "name is required"}), 400
 
-    cursor = get_db().execute(
+    result = execute_db(
+        get_db(),
         """
         INSERT INTO figures (
             name, brand, series_title, manufacturer, release_date, official_price,
@@ -240,6 +316,7 @@ def create_figure():
             image_url, source
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
         """,
         (
             data["name"],
@@ -258,8 +335,9 @@ def create_figure():
             data.get("source", "manual"),
         ),
     )
+    figure_id = result_insert_id(result)
     get_db().commit()
-    return jsonify({"id": cursor.lastrowid}), 201
+    return jsonify({"id": figure_id}), 201
 
 
 @app.get("/api/collection")
@@ -279,8 +357,12 @@ def get_collection():
         WHERE 1=1
     """
     params: list[Any] = []
+    figure_id = request.args.get("figure_id")
     ownership_status = request.args.get("ownership_status")
     brand = request.args.get("brand")
+    if figure_id:
+        query += " AND c.figure_id = ?"
+        params.append(int(figure_id))
     if ownership_status:
         query += " AND c.ownership_status = ?"
         params.append(ownership_status)
@@ -288,7 +370,7 @@ def get_collection():
         query += " AND f.brand = ?"
         params.append(brand)
     query += " ORDER BY c.updated_at DESC, c.id DESC"
-    rows = get_db().execute(query, params).fetchall()
+    rows = execute_db(get_db(), query, params).fetchall()
     return jsonify([row_to_dict(row) for row in rows])
 
 
@@ -298,7 +380,8 @@ def create_collection():
     if not data.get("figure_id"):
         return jsonify({"error": "figure_id is required"}), 400
     ownership_status = data.get("ownership_status", "欲しい")
-    cursor = get_db().execute(
+    result = execute_db(
+        get_db(),
         """
         INSERT INTO collection (
             figure_id, ownership_status, purchase_price, purchase_shop,
@@ -314,6 +397,7 @@ def create_collection():
             display_location = excluded.display_location,
             memo = excluded.memo,
             updated_at = CURRENT_TIMESTAMP
+        RETURNING id
         """,
         (
             data["figure_id"],
@@ -326,17 +410,19 @@ def create_collection():
             data.get("memo"),
         ),
     )
+    collection_id = result_insert_id(result)
     get_db().commit()
-    return jsonify({"id": cursor.lastrowid, "status": "saved"}), 201
+    return jsonify({"id": collection_id, "status": "saved"}), 201
 
 
 @app.put("/api/collection/<int:collection_id>")
 def update_collection(collection_id: int):
     data = request.get_json(force=True)
-    existing = get_db().execute("SELECT id FROM collection WHERE id = ?", (collection_id,)).fetchone()
+    existing = execute_db(get_db(), "SELECT id FROM collection WHERE id = ?", (collection_id,)).fetchone()
     if existing is None:
         return jsonify({"error": "collection record not found"}), 404
-    get_db().execute(
+    execute_db(
+        get_db(),
         """
         UPDATE collection
         SET ownership_status = ?,
@@ -366,7 +452,7 @@ def update_collection(collection_id: int):
 
 @app.delete("/api/collection/<int:collection_id>")
 def delete_collection(collection_id: int):
-    get_db().execute("DELETE FROM collection WHERE id = ?", (collection_id,))
+    execute_db(get_db(), "DELETE FROM collection WHERE id = ?", (collection_id,))
     get_db().commit()
     return jsonify({"status": "deleted"})
 
@@ -385,13 +471,14 @@ def get_all_prices():
         query += " AND p.figure_id = ?"
         params.append(int(figure_id))
     query += " ORDER BY p.checked_date DESC, p.id DESC"
-    rows = get_db().execute(query, params).fetchall()
+    rows = execute_db(get_db(), query, params).fetchall()
     return jsonify([row_to_dict(row) for row in rows])
 
 
 @app.get("/api/prices/<int:figure_id>")
 def get_prices_for_figure(figure_id: int):
-    rows = get_db().execute(
+    rows = execute_db(
+        get_db(),
         """
         SELECT p.*, f.name, f.brand
         FROM price_records p
@@ -411,12 +498,14 @@ def create_price():
     missing = [field for field in required if not data.get(field)]
     if missing:
         return jsonify({"error": f"missing fields: {', '.join(missing)}"}), 400
-    cursor = get_db().execute(
+    result = execute_db(
+        get_db(),
         """
         INSERT INTO price_records (
             figure_id, shop_name, price, condition, stock_status, checked_date, product_url
         )
         VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
         """,
         (
             data["figure_id"],
@@ -428,13 +517,14 @@ def create_price():
             data.get("product_url"),
         ),
     )
+    price_id = result_insert_id(result)
     get_db().commit()
-    return jsonify({"id": cursor.lastrowid}), 201
+    return jsonify({"id": price_id}), 201
 
 
 @app.delete("/api/prices/<int:price_id>")
 def delete_price(price_id: int):
-    get_db().execute("DELETE FROM price_records WHERE id = ?", (price_id,))
+    execute_db(get_db(), "DELETE FROM price_records WHERE id = ?", (price_id,))
     get_db().commit()
     return jsonify({"status": "deleted"})
 
@@ -442,7 +532,8 @@ def delete_price(price_id: int):
 @app.get("/api/dashboard")
 def dashboard_data():
     db = get_db()
-    cards = db.execute(
+    cards = execute_db(
+        db,
         """
         SELECT
             (SELECT COUNT(*) FROM figures) AS total_figures,
@@ -464,7 +555,8 @@ def dashboard_data():
         ) latest ON latest.figure_id = pr.figure_id AND latest.checked_date = pr.checked_date
         GROUP BY pr.figure_id
     """
-    wishlist_budget = db.execute(
+    wishlist_budget_row = execute_db(
+        db,
         f"""
         SELECT COALESCE(SUM(COALESCE(lp.price, f.official_price, 0)), 0) AS total
         FROM collection c
@@ -472,20 +564,31 @@ def dashboard_data():
         LEFT JOIN ({latest_prices}) lp ON lp.figure_id = f.id
         WHERE c.ownership_status = '欲しい'
         """
-    ).fetchone()["total"]
-    reserved_budget = db.execute(
+    ).fetchone()
+    wishlist_budget = row_value(wishlist_budget_row, "total")
+    reserved_budget_row = execute_db(
+        db,
         """
         SELECT COALESCE(SUM(COALESCE(c.purchase_price, f.official_price, 0)), 0) AS total
         FROM collection c
         JOIN figures f ON f.id = c.figure_id
         WHERE c.ownership_status = '予約済み'
         """
-    ).fetchone()["total"]
-    monthly_release_count = db.execute(
+    ).fetchone()
+    reserved_budget = row_value(reserved_budget_row, "total")
+    month_sql = (
         "SELECT COUNT(*) AS count FROM figures WHERE substr(release_date, 1, 7) = strftime('%Y-%m', 'now')"
-    ).fetchone()["count"]
+        if DB_KIND == "sqlite"
+        else "SELECT COUNT(*) AS count FROM figures WHERE substr(release_date, 1, 7) = to_char(CURRENT_DATE, 'YYYY-MM')"
+    )
+    monthly_release_row = execute_db(
+        db,
+        month_sql,
+    ).fetchone()
+    monthly_release_count = row_value(monthly_release_row, "count")
 
-    brand_distribution = db.execute(
+    brand_distribution = execute_db(
+        db,
         """
         SELECT COALESCE(brand, '未分類') AS brand, COUNT(*) AS count
         FROM figures
@@ -493,7 +596,8 @@ def dashboard_data():
         ORDER BY count DESC
         """
     ).fetchall()
-    ownership_distribution = db.execute(
+    ownership_distribution = execute_db(
+        db,
         """
         SELECT ownership_status AS status, COUNT(*) AS count
         FROM collection
@@ -501,7 +605,8 @@ def dashboard_data():
         ORDER BY count DESC
         """
     ).fetchall()
-    monthly_releases = db.execute(
+    monthly_releases = execute_db(
+        db,
         """
         SELECT substr(release_date, 1, 7) AS month, COUNT(*) AS count
         FROM figures
@@ -510,7 +615,8 @@ def dashboard_data():
         ORDER BY month
         """
     ).fetchall()
-    price_buckets = db.execute(
+    price_buckets = execute_db(
+        db,
         """
         SELECT bucket, COUNT(*) AS count
         FROM (
@@ -531,7 +637,8 @@ def dashboard_data():
         END
         """
     ).fetchall()
-    purchase_by_brand = db.execute(
+    purchase_by_brand = execute_db(
+        db,
         """
         SELECT f.brand, COALESCE(SUM(c.purchase_price), 0) AS amount
         FROM collection c
@@ -542,7 +649,8 @@ def dashboard_data():
         """
     ).fetchall()
 
-    first_tracked_figure = db.execute(
+    first_tracked_figure = execute_db(
+        db,
         """
         SELECT f.id, f.name
         FROM figures f
@@ -582,10 +690,21 @@ def options():
     }
     result: dict[str, list[str]] = {}
     for key, column in fields.items():
-        rows = db.execute(
+        rows = execute_db(
+            db,
             f"SELECT DISTINCT {column} AS value FROM figures WHERE {column} IS NOT NULL AND {column} != '' ORDER BY {column}"
         ).fetchall()
-        result[key] = [row["value"] for row in rows]
+        result[key] = [row_value(row, "value") for row in rows]
+    release_rows = execute_db(
+        db,
+        """
+        SELECT DISTINCT substr(release_date, 1, 7) AS value
+        FROM figures
+        WHERE release_date IS NOT NULL AND release_date != ''
+        ORDER BY value
+        """,
+    ).fetchall()
+    result["release_months"] = [row_value(row, "value") for row in release_rows]
     result["ownership_statuses"] = ["欲しい", "予約済み", "所持", "売却済み", "見送り", "高すぎる"]
     return jsonify(result)
 
@@ -593,7 +712,7 @@ def options():
 @app.cli.command("init-db")
 def init_db_command() -> None:
     init_database(seed=True)
-    print(f"Initialized {DATABASE}")
+    print(f"Initialized {DATABASE_URL}")
 
 
 if __name__ == "__main__":

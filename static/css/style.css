@@ -290,6 +290,12 @@ label span {
   gap: 16px;
 }
 
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .wide {
   grid-column: span 2;
 }
@@ -321,7 +327,7 @@ label span {
 
 .filters {
   display: grid;
-  grid-template-columns: 1.4fr repeat(5, minmax(130px, 1fr));
+  grid-template-columns: minmax(220px, 1.4fr) repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -387,6 +393,65 @@ label {
 
 .button:hover {
   transform: translateY(-1px);
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #cfd6df;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal {
+  width: min(620px, calc(100vw - 28px));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+}
+
+.modal::backdrop {
+  background: rgba(17, 24, 32, 0.62);
+}
+
+.modal-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(17, 24, 32, 0.28);
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .table-scroll {
@@ -505,6 +570,42 @@ tbody tr:hover {
   gap: 10px;
 }
 
+.fact-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.fact-list > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.45fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.fact-list > div:last-child {
+  border-bottom: 0;
+}
+
+.fact-list dt,
+.fact-list dd {
+  margin: 0;
+}
+
+.fact-list dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.fact-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
 .empty-state {
   padding: 28px;
   color: var(--muted);
@@ -595,6 +696,7 @@ tbody tr:hover {
 
   .metric-grid,
   .dashboard-grid,
+  .detail-grid,
   .filters,
   .split-layout,
   .field-grid {

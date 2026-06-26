@@ -25,6 +25,18 @@
     <select id="series_title" class="control"></select>
   </label>
   <label>
+    <span data-i18n="table.manufacturer">Manufacturer</span>
+    <select id="manufacturer" class="control"></select>
+  </label>
+  <label>
+    <span data-i18n="figures.releaseMonth">Release month</span>
+    <select id="release_month" class="control"></select>
+  </label>
+  <label>
+    <span data-i18n="common.status">Status</span>
+    <select id="status" class="control"></select>
+  </label>
+  <label>
     <span data-i18n="common.price">Price</span>
     <select id="priceRange" class="control">
       <option value="" data-i18n="common.all">All</option>
@@ -77,6 +89,55 @@
     </table>
   </div>
 </section>
+
+<dialog id="collectionDialog" class="modal">
+  <form id="collectionForm" class="modal-card" method="dialog">
+    <div class="panel-head">
+      <div>
+        <h2 data-i18n="collection.addToCollection">Add to Collection</h2>
+        <p id="collectionFigureName">-</p>
+      </div>
+      <button id="closeCollectionDialog" class="icon-button" type="button" aria-label="Close" data-i18n-aria-label="common.close">×</button>
+    </div>
+    <input id="collectionFigureId" name="figure_id" type="hidden">
+    <div class="field-grid">
+      <label>
+        <span data-i18n="common.status">Status</span>
+        <select id="collectionStatus" name="ownership_status" class="control" required></select>
+      </label>
+      <label>
+        <span data-i18n="table.purchasePrice">Purchase price</span>
+        <input name="purchase_price" class="control" type="number" min="0" step="1">
+      </label>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span data-i18n="table.purchaseShop">Purchase shop</span>
+        <input name="purchase_shop" class="control" placeholder="あみあみ / 駿河屋 / メルカリ">
+      </label>
+      <label>
+        <span data-i18n="table.purchaseDate">Purchase date</span>
+        <input name="purchase_date" class="control" type="date">
+      </label>
+    </div>
+    <label>
+      <span data-i18n="collection.displayLocation">Display location</span>
+      <input name="display_location" class="control" placeholder="ガラスケース A" data-i18n-placeholder="collection.displayLocationPlaceholder">
+    </label>
+    <label class="checkbox-row">
+      <input name="is_opened" type="checkbox">
+      <span data-i18n="table.opened">Opened</span>
+    </label>
+    <label>
+      <span data-i18n="table.memo">Memo</span>
+      <textarea name="memo" class="control textarea" rows="3"></textarea>
+    </label>
+    <div class="modal-actions">
+      <button class="button secondary" type="button" data-action="cancel" data-i18n="common.cancel">Cancel</button>
+      <button class="button primary" type="submit" data-i18n="collection.saveCollection">Save Collection</button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}
 
 {% block scripts %}

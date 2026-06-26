@@ -18,6 +18,11 @@ const I18N = {
     "common.all": "全部",
     "common.loading": "加载中",
     "common.reset": "重置",
+    "common.cancel": "取消",
+    "common.close": "关闭",
+    "common.yes": "是",
+    "common.no": "否",
+    "common.confirmDelete": "确定要删除这条记录吗？",
     "common.search": "搜索",
     "common.brand": "品牌",
     "common.series": "作品",
@@ -65,6 +70,7 @@ const I18N = {
     "figures.priceUnder5000": "5000 日元以下",
     "figures.priceUnder10000": "10000 日元以下",
     "figures.priceOver10000": "10000 日元以上",
+    "figures.releaseMonth": "发售月份",
     "figures.articulation": "可动性",
     "figures.productList": "商品列表",
     "figures.empty": "没有找到符合条件的商品",
@@ -74,10 +80,21 @@ const I18N = {
     "figures.memoAdded": "已加入想买清单",
     "collection.eyebrow": "收藏状态管理",
     "collection.title": "收藏",
+    "collection.addToCollection": "加入收藏",
+    "collection.saveCollection": "保存收藏",
+    "collection.displayLocation": "展示位置",
+    "collection.displayLocationPlaceholder": "展示柜 A / 书架 B",
     "collection.records": "收藏记录",
     "collection.empty": "暂无收藏记录",
     "collection.saved": "收藏记录已更新",
     "collection.deleted": "收藏记录已删除",
+    "detail.eyebrow": "商品详情",
+    "detail.backToList": "返回列表",
+    "detail.productInfo": "商品信息",
+    "detail.collectionInfo": "收藏信息",
+    "detail.collectionInfoDesc": "当前收藏记录",
+    "detail.priceTrendDesc": "该商品的价格历史",
+    "detail.noCollection": "还没有收藏记录",
     "prices.eyebrow": "价格历史",
     "prices.title": "价格",
     "prices.addRecord": "新增价格记录",
@@ -90,6 +107,11 @@ const I18N = {
     "prices.date": "日期",
     "prices.savePrice": "保存价格",
     "prices.records": "价格记录",
+    "prices.change": "涨跌",
+    "prices.up": "上涨 {amount}",
+    "prices.down": "下降 {amount}",
+    "prices.flat": "持平",
+    "prices.noPrevious": "首次记录",
     "prices.empty": "暂无价格记录",
     "prices.saved": "价格记录已保存",
     "prices.deleted": "价格记录已删除",
@@ -136,6 +158,11 @@ const I18N = {
     "common.all": "すべて",
     "common.loading": "読み込み中",
     "common.reset": "リセット",
+    "common.cancel": "キャンセル",
+    "common.close": "閉じる",
+    "common.yes": "はい",
+    "common.no": "いいえ",
+    "common.confirmDelete": "この記録を削除しますか？",
     "common.search": "検索",
     "common.brand": "ブランド",
     "common.series": "作品",
@@ -183,6 +210,7 @@ const I18N = {
     "figures.priceUnder5000": "5000円以下",
     "figures.priceUnder10000": "10000円以下",
     "figures.priceOver10000": "10000円以上",
+    "figures.releaseMonth": "発売月",
     "figures.articulation": "可動",
     "figures.productList": "商品一覧",
     "figures.empty": "条件に一致する商品がありません",
@@ -192,10 +220,21 @@ const I18N = {
     "figures.memoAdded": "欲しいリストに追加",
     "collection.eyebrow": "所有状況管理",
     "collection.title": "コレクション",
+    "collection.addToCollection": "コレクション追加",
+    "collection.saveCollection": "保存する",
+    "collection.displayLocation": "展示場所",
+    "collection.displayLocationPlaceholder": "ガラスケース A / 本棚 B",
     "collection.records": "コレクション記録",
     "collection.empty": "コレクション記録がありません",
     "collection.saved": "コレクション記録を更新しました",
     "collection.deleted": "コレクション記録を削除しました",
+    "detail.eyebrow": "商品詳細",
+    "detail.backToList": "一覧へ戻る",
+    "detail.productInfo": "商品情報",
+    "detail.collectionInfo": "コレクション情報",
+    "detail.collectionInfoDesc": "現在の所有記録",
+    "detail.priceTrendDesc": "この商品の価格履歴",
+    "detail.noCollection": "コレクション記録がありません",
     "prices.eyebrow": "価格履歴",
     "prices.title": "価格",
     "prices.addRecord": "価格記録を追加",
@@ -208,6 +247,11 @@ const I18N = {
     "prices.date": "日付",
     "prices.savePrice": "価格を保存",
     "prices.records": "価格記録",
+    "prices.change": "変動",
+    "prices.up": "{amount} 上昇",
+    "prices.down": "{amount} 下落",
+    "prices.flat": "変化なし",
+    "prices.noPrevious": "初回記録",
     "prices.empty": "価格記録がありません",
     "prices.saved": "価格記録を保存しました",
     "prices.deleted": "価格記録を削除しました",
@@ -254,6 +298,11 @@ const I18N = {
     "common.all": "All",
     "common.loading": "Loading",
     "common.reset": "Reset",
+    "common.cancel": "Cancel",
+    "common.close": "Close",
+    "common.yes": "Yes",
+    "common.no": "No",
+    "common.confirmDelete": "Delete this record?",
     "common.search": "Search",
     "common.brand": "Brand",
     "common.series": "Series",
@@ -301,6 +350,7 @@ const I18N = {
     "figures.priceUnder5000": "Under ¥5,000",
     "figures.priceUnder10000": "Under ¥10,000",
     "figures.priceOver10000": "¥10,000 and up",
+    "figures.releaseMonth": "Release month",
     "figures.articulation": "Articulation",
     "figures.productList": "Product List",
     "figures.empty": "No figures found",
@@ -310,10 +360,21 @@ const I18N = {
     "figures.memoAdded": "Added to wishlist",
     "collection.eyebrow": "Ownership management",
     "collection.title": "Collection",
+    "collection.addToCollection": "Add to Collection",
+    "collection.saveCollection": "Save Collection",
+    "collection.displayLocation": "Display location",
+    "collection.displayLocationPlaceholder": "Display case A / Shelf B",
     "collection.records": "Collection Records",
     "collection.empty": "No collection records",
     "collection.saved": "Collection record updated",
     "collection.deleted": "Collection record deleted",
+    "detail.eyebrow": "Figure detail",
+    "detail.backToList": "Back to list",
+    "detail.productInfo": "Product Info",
+    "detail.collectionInfo": "Collection Info",
+    "detail.collectionInfoDesc": "Current ownership record",
+    "detail.priceTrendDesc": "Price history for this figure",
+    "detail.noCollection": "No collection record yet",
     "prices.eyebrow": "Price history",
     "prices.title": "Prices",
     "prices.addRecord": "Add Price Record",
@@ -326,6 +387,11 @@ const I18N = {
     "prices.date": "Date",
     "prices.savePrice": "Save Price",
     "prices.records": "Price Records",
+    "prices.change": "Change",
+    "prices.up": "Up {amount}",
+    "prices.down": "Down {amount}",
+    "prices.flat": "No change",
+    "prices.noPrevious": "First record",
     "prices.empty": "No price records",
     "prices.saved": "Price record saved",
     "prices.deleted": "Price record deleted",
@@ -477,6 +543,39 @@ function toast(message) {
 
 function badge(label, variant = "") {
   return `<span class="badge ${variant}">${label}</span>`;
+}
+
+function priceMovements(rows) {
+  const movements = {};
+  const previousByShop = {};
+  [...rows]
+    .sort((a, b) => {
+      const groupA = `${a.figure_id}-${a.shop_name}`;
+      const groupB = `${b.figure_id}-${b.shop_name}`;
+      return groupA.localeCompare(groupB) || a.checked_date.localeCompare(b.checked_date) || a.id - b.id;
+    })
+    .forEach((row) => {
+      const key = `${row.figure_id}-${row.shop_name}`;
+      const previous = previousByShop[key];
+      previousByShop[key] = row;
+      if (!previous) {
+        movements[row.id] = { type: "none", diff: 0 };
+        return;
+      }
+      const diff = Number(row.price) - Number(previous.price);
+      movements[row.id] = {
+        type: diff > 0 ? "up" : diff < 0 ? "down" : "flat",
+        diff,
+      };
+    });
+  return movements;
+}
+
+function movementBadge(movement) {
+  if (!movement || movement.type === "none") return badge(t("prices.noPrevious"));
+  if (movement.type === "flat") return badge(t("prices.flat"));
+  if (movement.type === "up") return badge(t("prices.up", { amount: yen(Math.abs(movement.diff)) }), "rose");
+  return badge(t("prices.down", { amount: yen(Math.abs(movement.diff)) }), "green");
 }
 
 function bindResize(charts) {

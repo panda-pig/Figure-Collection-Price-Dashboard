@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Figure Detail | Figure Collection{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <div>
+    <p class="eyebrow" data-i18n="detail.eyebrow">Figure detail</p>
+    <h1 id="detailTitle" data-i18n="common.loading">Loading</h1>
+  </div>
+  <a class="button secondary" href="/figures" data-i18n="detail.backToList">Back to list</a>
+</header>
+
+<section class="detail-grid">
+  <article class="panel">
+    <div class="panel-head">
+      <div>
+        <h2 data-i18n="detail.productInfo">Product Info</h2>
+        <p id="detailSubtitle">-</p>
+      </div>
+    </div>
+    <dl id="figureFacts" class="fact-list"></dl>
+  </article>
+
+  <article class="panel">
+    <div class="panel-head">
+      <div>
+        <h2 data-i18n="detail.collectionInfo">Collection Info</h2>
+        <p data-i18n="detail.collectionInfoDesc">Current ownership record</p>
+      </div>
+    </div>
+    <dl id="collectionFacts" class="fact-list"></dl>
+  </article>
+
+  <article class="panel chart-panel wide">
+    <div class="panel-head">
+      <div>
+        <h2 data-i18n="chart.priceTrend">Price Trend</h2>
+        <p data-i18n="detail.priceTrendDesc">Price history for this figure</p>
+      </div>
+    </div>
+    <div id="detailTrendChart" class="chart tall"></div>
+  </article>
+
+  <article class="panel table-panel wide">
+    <div class="panel-head">
+      <div>
+        <h2 data-i18n="prices.records">Price Records</h2>
+        <p id="detailPriceCount" data-i18n="common.loading">Loading</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="prices.shop">Shop</th>
+            <th data-i18n="common.price">Price</th>
+            <th data-i18n="prices.change">Change</th>
+            <th data-i18n="prices.condition">Condition</th>
+            <th data-i18n="prices.stock">Stock</th>
+            <th data-i18n="prices.date">Date</th>
+          </tr>
+        </thead>
+        <tbody id="detailPricesTable"></tbody>
+      </table>
+    </div>
+  </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.FIGURE_ID = {{ figure_id }};
+</script>
+<script src="{{ url_for('static', filename='js/figure-detail.js') }}"></script>
+{% endblock %}

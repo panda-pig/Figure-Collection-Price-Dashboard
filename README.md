@@ -75,6 +75,24 @@ http://127.0.0.1:5000
 
 If you skip `flask --app app init-db`, the app will create `database.db` automatically on first request and seed it with the sample CSV data.
 
+## Persistent Database
+
+By default, local development uses SQLite:
+
+```txt
+database.db
+```
+
+For production persistence, set a PostgreSQL connection string with `DATABASE_URL`:
+
+```bash
+export DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DBNAME"
+flask --app app init-db
+flask --app app run
+```
+
+On Vercel, add `DATABASE_URL` in Project Settings → Environment Variables. Neon, Supabase, Render Postgres, or any standard PostgreSQL service works. If `DATABASE_URL` is not set on Vercel, the app falls back to a temporary SQLite demo database.
+
 ## Main API Endpoints
 
 ```txt
@@ -111,7 +129,6 @@ The MVP uses manual CSV data to avoid relying on unstable external sites or high
 
 ## Future Improvements
 
-- Product detail page
 - Image upload
 - Price alerts
 - Release date reminders
