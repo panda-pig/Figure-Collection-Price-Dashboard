@@ -1,38 +1,48 @@
 # Figure Collection & Price Dashboard
 
-A Flask + SQLite web app for managing figure product data, collection status, purchase plans, and price records.
+[English](README.md) | [中文](README.zh-CN.md) | [日本語](README.ja.md)
+
+A Flask + SQLite/PostgreSQL web app for managing figure product data, collection status, purchase plans, and price records.
+
+Live demo: https://figure-dashboard-deploy.vercel.app
 
 ## Overview
 
-This project turns figure collecting into a small data management and visualization system. It supports product search, ownership status management, price history tracking, and dashboard charts for brand distribution, release months, price bands, and purchase amount.
-
-Japanese name: フィギュア商品比較・コレクション管理ダッシュボード
+Figure Collection & Price Dashboard turns figure collecting into a small data management and visualization system. It supports product search, collection workflow management, price history tracking, and dashboard charts for brand distribution, release months, price bands, purchase amount, and price movement.
 
 ## Features
 
 - Dashboard with KPI cards and ECharts visualizations
-- Product list with keyword, brand, series, price, limited, and articulation filters
-- Collection management for 欲しい / 予約済み / 所持 / 売却済み / 見送り / 高すぎる
-- Price record input for multiple shops and conditions
+- Product list with keyword, brand, series, manufacturer, release month, status, price, limited, and articulation filters
+- Collection workflow with a modal form for status, purchase price, shop, date, display location, opened state, and memo
+- Figure detail page with product facts, collection facts, price trend, and price records
+- Price records with movement labels: first record, up, down, or unchanged
 - CSV import scripts for figures, price records, and collection records
-- SQLite schema with `figures`, `price_records`, and `collection`
+- Local SQLite support and production PostgreSQL support through `DATABASE_URL`
+- Chinese, Japanese, and English UI language switcher
 
 ## Tech Stack
 
 - Python
 - Flask
-- SQLite
+- SQLAlchemy
+- SQLite / PostgreSQL
 - HTML / CSS
 - JavaScript
 - ECharts
+- Vercel
 
 ## Project Structure
 
 ```txt
 .
+├── api/
+│   └── index.py
 ├── app.py
 ├── schema.sql
+├── schema_postgres.sql
 ├── requirements.txt
+├── vercel.json
 ├── data/
 │   ├── figures.csv
 │   ├── price_records.csv
@@ -45,6 +55,7 @@ Japanese name: フィギュア商品比較・コレクション管理ダッシ�
 │   ├── base.html
 │   ├── index.html
 │   ├── figures.html
+│   ├── figure_detail.html
 │   ├── collection.html
 │   └── prices.html
 └── static/
@@ -53,11 +64,12 @@ Japanese name: フィギュア商品比較・コレクション管理ダッシ�
         ├── app.js
         ├── dashboard.js
         ├── figures.js
+        ├── figure-detail.js
         ├── collection.js
         └── prices.js
 ```
 
-## How to Run
+## How to Run Locally
 
 ```bash
 python3 -m venv .venv
@@ -73,11 +85,11 @@ Then open:
 http://127.0.0.1:5000
 ```
 
-If you skip `flask --app app init-db`, the app will create `database.db` automatically on first request and seed it with the sample CSV data.
+If you skip `flask --app app init-db`, the app creates `database.db` automatically on first request and seeds it with the sample CSV data.
 
 ## Persistent Database
 
-By default, local development uses SQLite:
+Local development uses SQLite by default:
 
 ```txt
 database.db
@@ -123,15 +135,12 @@ python scripts/import_collection.py data/collection.csv
 
 The MVP uses manual CSV data to avoid relying on unstable external sites or high-frequency scraping.
 
-## Portfolio Summary
-
-フィギュア商品情報、価格履歴、所有状況を SQLite で管理し、Flask API と JavaScript/ECharts によって検索・分析・可視化できる個人向け Web アプリケーションです。
-
 ## Future Improvements
 
 - Image upload
 - Price alerts
 - Release date reminders
+- User authentication
 - React frontend rewrite
 - Docker setup
 - Low-frequency official site data import
