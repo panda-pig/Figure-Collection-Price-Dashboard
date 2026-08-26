@@ -1,11 +1,16 @@
 const dashboardCharts = [];
 
+const CHART_PALETTE = ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820", "#8c97a6"];
+
 document.addEventListener("DOMContentLoaded", async () => {
+  await I18N_READY;
   try {
-    const [dashboard, figures] = await Promise.all([api("/api/dashboard"), api("/api/figures")]);
+    // Only id/name pairs are needed for the trend picker, so this no longer
+    // fetches the whole figures table alongside the dashboard payload.
+    const [dashboard, options] = await Promise.all([api("/api/dashboard"), api("/api/options")]);
     renderMetrics(dashboard);
     renderDashboardCharts(dashboard);
-    setupTrendSelect(figures, dashboard.default_trend_figure);
+    setupTrendSelect(options.figures, dashboard.default_trend_figure);
     bindResize(dashboardCharts);
   } catch (error) {
     toast(error.message);
@@ -26,10 +31,10 @@ function renderMetrics(data) {
   document.querySelector("#metricGrid").innerHTML = metrics
     .map(
       ([label, value, note, accent]) => `
-        <article class="metric-card" style="--accent:${accent}">
-          <span>${label}</span>
-          <strong>${value}</strong>
-          <small>${note}</small>
+        <article class="metric-card" style="--accent:${esc(accent)}">
+          <span>${esc(label)}</span>
+          <strong>${esc(value)}</strong>
+          <small>${esc(note)}</small>
         </article>
       `,
     )
@@ -52,12 +57,8 @@ function renderDashboardCharts(data) {
 function pieChart(id, rows, nameKey, valueKey) {
   const chart = echarts.init(document.getElementById(id));
   dashboardCharts.push(chart);
-  const translatedRows = rows.map((row) => ({
-    ...row,
-    translatedName: nameKey === "status" ? statusLabel(row[nameKey]) : row[nameKey],
-  }));
   chart.setOption({
-    color: ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820", "#8c97a6"],
+    color: CHART_PALETTE,
     tooltip: { trigger: "item" },
     legend: { bottom: 0, type: "scroll" },
     series: [
@@ -66,7 +67,10 @@ function pieChart(id, rows, nameKey, valueKey) {
         radius: ["42%", "70%"],
         center: ["50%", "44%"],
         label: { formatter: "{b}\n{c}" },
-        data: translatedRows.map((row) => ({ name: row.translatedName, value: row[valueKey] })),
+        data: rows.map((row) => ({
+          name: nameKey === "status" ? statusLabel(row[nameKey]) : row[nameKey],
+          value: row[valueKey],
+        })),
       },
     ],
   });
@@ -78,10 +82,7 @@ function barChart(id, rows, labelKey, valueKey, color, formatter = (value) => va
   chart.setOption({
     color: [color],
     grid: { left: 48, right: 20, top: 26, bottom: 56 },
-    tooltip: {
-      trigger: "axis",
-      valueFormatter: formatter,
-    },
+    tooltip: { trigger: "axis", valueFormatter: formatter },
     xAxis: {
       type: "category",
       data: rows.map((row) => row[labelKey]),
@@ -94,11 +95,7 @@ function barChart(id, rows, labelKey, valueKey, color, formatter = (value) => va
 
 function setupTrendSelect(figures, defaultFigure) {
   const select = document.querySelector("#trendFigureSelect");
-  setOptions(
-    select,
-    figures.map((figure) => ({ id: figure.id, name: figure.name })),
-    null,
-  );
+  setOptions(select, figures, null);
   if (defaultFigure) select.value = defaultFigure.id;
   select.addEventListener("change", () => renderTrend(select.value));
   renderTrend(select.value);
@@ -106,29 +103,17 @@ function setupTrendSelect(figures, defaultFigure) {
 
 async function renderTrend(figureId) {
   if (!figureId) return;
-  const rows = await api(`/api/prices/${figureId}`);
-  const chartEl = document.getElementById("trendChart");
-  let chart = echarts.getInstanceByDom(chartEl);
-  if (!chart) {
-    chart = echarts.init(chartEl);
-    dashboardCharts.push(chart);
+  try {
+    const rows = await api(`/api/prices/${figureId}`);
+    const chartEl = document.getElementById("trendChart");
+    let chart = echarts.getInstanceByDom(chartEl);
+    if (!chart) {
+      chart = echarts.init(chartEl);
+      dashboardCharts.push(chart);
+    }
+    document.querySelector("#trendSubtitle").textContent = rows[0]?.name || t("chart.priceTrendDesc");
+    chart.setOption(trendOption(rows), true);
+  } catch (error) {
+    toast(error.message);
   }
-  const shops = [...new Set(rows.map((row) => row.shop_name))];
-  const dates = [...new Set(rows.map((row) => row.checked_date))].sort();
-  document.querySelector("#trendSubtitle").textContent = rows[0]?.name || t("chart.priceTrendDesc");
-  chart.setOption({
-    color: ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820"],
-    tooltip: { trigger: "axis", valueFormatter: yen },
-    legend: { top: 0, type: "scroll" },
-    grid: { left: 64, right: 24, top: 46, bottom: 42 },
-    xAxis: { type: "category", data: dates },
-    yAxis: { type: "value", axisLabel: { formatter: (value) => `${Math.round(value / 1000)}k` } },
-    series: shops.map((shop) => ({
-      name: shop,
-      type: "line",
-      smooth: true,
-      symbolSize: 8,
-      data: dates.map((date) => rows.find((row) => row.shop_name === shop && row.checked_date === date)?.price ?? null),
-    })),
-  });
 }

@@ -8,7 +8,10 @@
     <p class="eyebrow" data-i18n="figures.eyebrow">商品マスター</p>
     <h1 data-i18n="figures.title">Figures</h1>
   </div>
-  <button id="clearFilters" class="button secondary" type="button" data-i18n="common.reset">Reset</button>
+  <div class="header-actions">
+    <button id="addFigure" class="button primary write-only" type="button" data-i18n="figures.addFigure">Add Figure</button>
+    <button id="clearFilters" class="button secondary" type="button" data-i18n="common.reset">Reset</button>
+  </div>
 </header>
 
 <section class="panel filters" aria-label="Figure filters" data-i18n-aria-label="aria.figureFilters">
@@ -88,7 +91,85 @@
       <tbody id="figuresTable"></tbody>
     </table>
   </div>
+  <div id="figuresPager" class="pager" hidden></div>
 </section>
+
+<dialog id="figureDialog" class="modal">
+  <form id="figureForm" class="modal-card" method="dialog">
+    <div class="panel-head">
+      <div>
+        <h2 id="figureDialogTitle">New Figure</h2>
+      </div>
+      <button id="closeFigureDialog" class="icon-button" type="button" aria-label="Close" data-i18n-aria-label="common.close">×</button>
+    </div>
+    <label>
+      <span data-i18n="table.figureName">Figure name</span>
+      <input name="name" class="control" required data-i18n-placeholder="figures.namePlaceholder">
+    </label>
+    <div class="field-grid">
+      <label>
+        <span data-i18n="common.brand">Brand</span>
+        <input name="brand" class="control">
+      </label>
+      <label>
+        <span data-i18n="common.series">Series</span>
+        <input name="series_title" class="control">
+      </label>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span data-i18n="table.manufacturer">Manufacturer</span>
+        <input name="manufacturer" class="control">
+      </label>
+      <label>
+        <span data-i18n="table.release">Release</span>
+        <input name="release_date" class="control" data-i18n-placeholder="figures.releaseDatePlaceholder">
+      </label>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span data-i18n="table.officialPrice">Official price</span>
+        <input name="official_price" class="control" type="number" min="0" step="1">
+      </label>
+      <label>
+        <span data-i18n="table.height">Height (mm)</span>
+        <input name="height_mm" class="control" type="number" min="0" step="1">
+      </label>
+    </div>
+    <div class="field-grid">
+      <label>
+        <span data-i18n="table.scale">Scale</span>
+        <input name="scale" class="control" placeholder="1/7 / non-scale">
+      </label>
+      <label>
+        <span data-i18n="common.status">Status</span>
+        <input name="status" class="control" placeholder="予約中 / 発売予定">
+      </label>
+    </div>
+    <label>
+      <span data-i18n="table.productUrl">Product URL</span>
+      <input name="product_url" class="control" type="url" placeholder="https://">
+    </label>
+    <label>
+      <span data-i18n="table.imageUrl">Image URL</span>
+      <input name="image_url" class="control" type="url" placeholder="https://">
+    </label>
+    <div class="field-grid">
+      <label class="checkbox-row">
+        <input name="is_articulated" type="checkbox">
+        <span data-i18n="status.articulated">Articulated</span>
+      </label>
+      <label class="checkbox-row">
+        <input name="is_limited" type="checkbox">
+        <span data-i18n="status.limited">Limited</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="button secondary" type="button" data-action="cancel" data-i18n="common.cancel">Cancel</button>
+      <button class="button primary" type="submit" data-i18n="figures.saveFigure">Save Figure</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="collectionDialog" class="modal">
   <form id="collectionForm" class="modal-card" method="dialog">
@@ -141,5 +222,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/figures.js') }}"></script>
+<script src="{{ url_for('static', filename='js/figures.js') }}?v={{ asset_version }}"></script>
 {% endblock %}

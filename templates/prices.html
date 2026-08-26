@@ -11,7 +11,7 @@
 </header>
 
 <section class="split-layout">
-  <form id="priceForm" class="panel form-panel">
+  <form id="priceForm" class="panel form-panel write-only">
     <div class="panel-head">
       <div>
         <h2 data-i18n="prices.addRecord">Add Price Record</h2>
@@ -79,10 +79,11 @@
         <tbody id="pricesTable"></tbody>
       </table>
     </div>
+    <div id="pricesPager" class="pager" hidden></div>
   </section>
 </section>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/prices.js') }}"></script>
+<script src="{{ url_for('static', filename='js/prices.js') }}?v={{ asset_version }}"></script>
 {% endblock %}

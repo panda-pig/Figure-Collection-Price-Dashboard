@@ -1,10 +1,7 @@
-PRAGMA foreign_keys = ON;
+-- SQLite schema. Kept structurally parallel to schema_postgres.sql.
+-- Dropping is handled in app.py (reset-db) so this file is safe to re-run.
 
-DROP TABLE IF EXISTS collection;
-DROP TABLE IF EXISTS price_records;
-DROP TABLE IF EXISTS figures;
-
-CREATE TABLE figures (
+CREATE TABLE IF NOT EXISTS figures (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     brand TEXT,
@@ -24,22 +21,21 @@ CREATE TABLE figures (
     updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE price_records (
+CREATE TABLE IF NOT EXISTS price_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    figure_id INTEGER NOT NULL,
+    figure_id INTEGER NOT NULL REFERENCES figures(id) ON DELETE CASCADE,
     shop_name TEXT NOT NULL,
     price INTEGER NOT NULL,
     condition TEXT,
     stock_status TEXT,
     checked_date TEXT NOT NULL,
     product_url TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (figure_id) REFERENCES figures(id) ON DELETE CASCADE
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE collection (
+CREATE TABLE IF NOT EXISTS collection (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    figure_id INTEGER NOT NULL,
+    figure_id INTEGER NOT NULL UNIQUE REFERENCES figures(id) ON DELETE CASCADE,
     ownership_status TEXT NOT NULL,
     purchase_price INTEGER,
     purchase_shop TEXT,
@@ -48,12 +44,11 @@ CREATE TABLE collection (
     display_location TEXT,
     memo TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (figure_id) REFERENCES figures(id) ON DELETE CASCADE,
-    UNIQUE (figure_id)
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_figures_brand ON figures(brand);
-CREATE INDEX idx_figures_release_date ON figures(release_date);
-CREATE INDEX idx_price_records_figure_date ON price_records(figure_id, checked_date);
-CREATE INDEX idx_collection_status ON collection(ownership_status);
+CREATE INDEX IF NOT EXISTS idx_figures_brand ON figures(brand);
+CREATE INDEX IF NOT EXISTS idx_figures_release_date ON figures(release_date);
+CREATE INDEX IF NOT EXISTS idx_price_records_figure_date ON price_records(figure_id, checked_date);
+CREATE INDEX IF NOT EXISTS idx_price_records_figure_shop ON price_records(figure_id, shop_name, checked_date);
+CREATE INDEX IF NOT EXISTS idx_collection_status ON collection(ownership_status);

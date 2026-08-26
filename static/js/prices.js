@@ -1,16 +1,23 @@
-let priceFigures = [];
+let pricesPager;
+let currentPage = 1;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await I18N_READY;
   try {
-    priceFigures = await api("/api/figures");
-    const figureOptions = priceFigures.map((figure) => ({ id: figure.id, name: figure.name }));
-    setOptions(document.querySelector("#figureSelect"), figureOptions, null);
-    setOptions(document.querySelector("#priceFigureFilter"), figureOptions);
+    await loadApiConfig();
+    // /api/options carries id+name pairs, so the dropdowns no longer pull the
+    // entire figures table.
+    const options = await api("/api/options");
+    setOptions(document.querySelector("#figureSelect"), options.figures, null);
+    setOptions(document.querySelector("#priceFigureFilter"), options.figures);
     document.querySelector("input[name='checked_date']").valueAsDate = new Date();
+
+    pricesPager = createPager("pricesPager", (page) => loadPrices(page));
+
     document.querySelector("#priceForm").addEventListener("submit", savePrice);
-    document.querySelector("#priceFigureFilter").addEventListener("change", loadPrices);
+    document.querySelector("#priceFigureFilter").addEventListener("change", () => loadPrices(1));
     document.querySelector("#pricesTable").addEventListener("click", onPriceAction);
-    await loadPrices();
+    await loadPrices(1);
   } catch (error) {
     toast(error.message);
   }
@@ -18,53 +25,59 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function savePrice(event) {
   event.preventDefault();
-  const formData = new FormData(event.currentTarget);
+  const form = event.currentTarget;
+  const formData = new FormData(form);
   const payload = Object.fromEntries(formData.entries());
   payload.figure_id = Number(payload.figure_id);
   payload.price = Number(payload.price);
-  await api("/api/prices", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  event.currentTarget.reset();
-  document.querySelector("input[name='checked_date']").valueAsDate = new Date();
-  toast(t("prices.saved"));
-  await loadPrices();
+  try {
+    await api("/api/prices", { method: "POST", body: JSON.stringify(payload) });
+    form.reset();
+    document.querySelector("input[name='checked_date']").valueAsDate = new Date();
+    toast(t("prices.saved"));
+    await loadPrices(1);
+  } catch (error) {
+    toast(error.message);
+  }
 }
 
-async function loadPrices() {
+async function loadPrices(page = currentPage) {
+  const params = new URLSearchParams();
   const figureId = document.querySelector("#priceFigureFilter").value;
-  const params = figureId ? `?figure_id=${figureId}` : "";
-  const rows = await api(`/api/prices${params}`);
-  renderPrices(rows);
+  if (figureId) params.set("figure_id", figureId);
+  params.set("page", page);
+
+  const result = await api(`/api/prices?${params.toString()}`);
+  currentPage = result.page;
+  renderPrices(result);
+  pricesPager.update(result);
 }
 
-function renderPrices(rows) {
-  document.querySelector("#priceCount").textContent = t("common.records", { count: rows.length });
+function renderPrices(result) {
+  document.querySelector("#priceCount").textContent = t("common.records", { count: result.total });
   const tbody = document.querySelector("#pricesTable");
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${t("prices.empty")}</td></tr>`;
+  if (!result.items.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">${esc(t("prices.empty"))}</td></tr>`;
     return;
   }
-  const movements = priceMovements(rows);
-  tbody.innerHTML = rows
+  tbody.innerHTML = result.items
     .map(
       (row) => `
       <tr>
         <td>
           <span class="item-title">
-            <strong>${row.name}</strong>
-            <small>${row.brand} / ${row.series_title}</small>
+            <strong>${esc(row.name)}</strong>
+            <small>${esc([row.brand, row.series_title].filter(Boolean).join(" / "))}</small>
           </span>
         </td>
-        <td>${row.shop_name}</td>
-        <td>${yen(row.price)}</td>
-        <td>${movementBadge(movements[row.id])}</td>
+        <td>${esc(row.shop_name)}</td>
+        <td>${esc(yen(row.price))}</td>
+        <td>${movementBadge(row)}</td>
         <td>${badge(conditionLabel(row.condition), row.condition === "used" ? "gold" : "green")}</td>
-        <td>${text(row.stock_status)}</td>
-        <td>${row.checked_date}</td>
+        <td>${cell(row.stock_status)}</td>
+        <td>${cell(row.checked_date)}</td>
         <td>
-          <button class="button small danger" data-action="delete" data-id="${row.id}" type="button">${t("button.delete")}</button>
+          <button class="button small danger write-only" data-action="delete" data-id="${esc(row.id)}" type="button">${esc(t("button.delete"))}</button>
         </td>
       </tr>
     `,
@@ -76,7 +89,11 @@ async function onPriceAction(event) {
   const button = event.target.closest("button[data-action='delete']");
   if (!button) return;
   if (!window.confirm(t("common.confirmDelete"))) return;
-  await api(`/api/prices/${button.dataset.id}`, { method: "DELETE" });
-  toast(t("prices.deleted"));
-  await loadPrices();
+  try {
+    await api(`/api/prices/${button.dataset.id}`, { method: "DELETE" });
+    toast(t("prices.deleted"));
+    await loadPrices();
+  } catch (error) {
+    toast(error.message);
+  }
 }

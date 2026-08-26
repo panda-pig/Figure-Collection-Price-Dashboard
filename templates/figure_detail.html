@@ -72,5 +72,5 @@
 <script>
   window.FIGURE_ID = {{ figure_id }};
 </script>
-<script src="{{ url_for('static', filename='js/figure-detail.js') }}"></script>
+<script src="{{ url_for('static', filename='js/figure-detail.js') }}?v={{ asset_version }}"></script>
 {% endblock %}

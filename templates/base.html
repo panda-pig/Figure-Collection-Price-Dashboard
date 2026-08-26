@@ -1,11 +1,15 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-asset-version="{{ asset_version }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Figure Collection Dashboard{% endblock %}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ asset_version }}">
+  <script
+    src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"
+    integrity="sha384-pPi0zxBAoDu6+JXW/C68UZLvBUUtU+7zonhif43rqj7pxsGyqyqzcian2Rj37Rss"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
 </head>
 <body>
   <div class="shell">
@@ -14,7 +18,7 @@
         <span class="brand-symbol">FC</span>
         <span>
           <strong>Figure Console</strong>
-          <small data-i18n="brand.subtitle">Collection & Price</small>
+          <small data-i18n="brand.subtitle">Collection &amp; Price</small>
         </span>
       </a>
       <nav class="nav-list">
@@ -24,6 +28,13 @@
         <a class="{{ 'active' if page == 'prices' else '' }}" href="/prices" data-i18n="nav.prices">Prices</a>
       </nav>
       <div class="sidebar-bottom">
+        <div id="authPanel" class="auth-panel" hidden>
+          <span data-i18n="auth.label">Write access</span>
+          <div class="auth-row">
+            <span id="authState" class="auth-state"></span>
+            <button id="authToggle" class="button small secondary" type="button"></button>
+          </div>
+        </div>
         <div class="language-panel" aria-label="Language">
           <span data-i18n="language.label">Language</span>
           <div class="language-switch" role="group" aria-label="Language switcher">
@@ -45,7 +56,7 @@
     </main>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v={{ asset_version }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -461,7 +461,7 @@ label {
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 920px;
+  min-width: 1040px;
 }
 
 th,
@@ -537,7 +537,12 @@ tbody tr:hover {
 .row-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  min-width: 210px;
+}
+
+.row-actions .button {
+  white-space: nowrap;
 }
 
 .inline-input {
@@ -709,5 +714,87 @@ tbody tr:hover {
 
   .chart {
     height: 280px;
+  }
+}
+
+/* ------------------------------------------------------------- pager --- */
+
+.pager[hidden],
+.auth-panel[hidden] {
+  display: none;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 0 4px;
+}
+
+.pager-info {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  min-width: 110px;
+  text-align: center;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* -------------------------------------------------------- write access --- */
+
+.auth-panel {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-panel > span {
+  color: rgba(248, 250, 252, 0.62);
+  font-size: 12px;
+}
+
+.auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.auth-state {
+  color: rgba(248, 250, 252, 0.78);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.auth-panel.unlocked .auth-state {
+  color: #7fd6b4;
+}
+
+/* Write controls stay hidden until the server-side lock is satisfied. */
+body.read-only .write-only {
+  display: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .button {
+    flex: 1;
   }
 }

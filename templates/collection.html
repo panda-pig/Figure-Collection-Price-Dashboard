@@ -47,9 +47,10 @@
       <tbody id="collectionTable"></tbody>
     </table>
   </div>
+  <div id="collectionPager" class="pager" hidden></div>
 </section>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/collection.js') }}"></script>
+<script src="{{ url_for('static', filename='js/collection.js') }}?v={{ asset_version }}"></script>
 {% endblock %}
