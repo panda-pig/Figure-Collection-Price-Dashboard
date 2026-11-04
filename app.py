@@ -7,6 +7,7 @@ import math
 import os
 import secrets
 from collections.abc import Callable
+from datetime import date
 from functools import wraps
 from pathlib import Path
 from typing import Any
@@ -128,21 +129,72 @@ def result_insert_id(result) -> int | None:
 def int_or_none(value: Any) -> int | None:
     if value in (None, ""):
         return None
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        raise ApiError("expected an integer")
     try:
-        return int(value)
-    except (TypeError, ValueError) as error:
+        parsed = int(value)
+    except (TypeError, ValueError, OverflowError) as error:
         raise ApiError(f"expected an integer, got {value!r}") from error
+    if isinstance(value, float) and parsed != value:
+        raise ApiError("expected a whole number")
+    if not -2147483648 <= parsed <= 2147483647:
+        raise ApiError("integer is outside the supported range")
+    return parsed
+
+
+def nonnegative_int_or_none(value: Any) -> int | None:
+    parsed = int_or_none(value)
+    if parsed is not None and parsed < 0:
+        raise ApiError("value must not be negative")
+    return parsed
 
 
 def bool_int(value: Any) -> int:
-    return 1 if str(value).lower() in {"1", "true", "yes", "on"} else 0
+    if value is None or value == "":
+        return 0
+    normalized = str(value).lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return 1
+    if normalized in {"0", "false", "no", "off"}:
+        return 0
+    raise ApiError("expected a boolean")
 
 
 def text_or_none(value: Any) -> str | None:
     if value is None:
         return None
-    value = str(value).strip()
+    if not isinstance(value, str):
+        raise ApiError("expected text")
+    value = value.strip()
     return value or None
+
+
+def date_or_none(value: Any, allow_month: bool = False) -> str | None:
+    value = text_or_none(value)
+    if value is None:
+        return None
+    candidate = f"{value}-01" if allow_month and len(value) == 7 else value
+    try:
+        parsed = date.fromisoformat(candidate)
+    except ValueError as error:
+        raise ApiError("expected a valid ISO date") from error
+    if parsed.isoformat() != candidate:
+        raise ApiError("expected YYYY-MM-DD")
+    return value
+
+
+def release_date_or_none(value: Any) -> str | None:
+    return date_or_none(value, allow_month=True)
+
+
+OWNERSHIP_STATUSES = ("欲しい", "予約済み", "所持", "売却済み", "見送り", "高すぎる")
+
+
+def ownership_status(value: Any) -> str:
+    value = required_text(value)
+    if value not in OWNERSHIP_STATUSES:
+        raise ApiError("invalid ownership status")
+    return value
 
 
 def required_text(value: Any) -> str:
@@ -370,6 +422,8 @@ def paged_response(
 
     total_row = execute_db(db, f"SELECT COUNT(*) AS count {from_where}", params).fetchone()
     total = int(row_value(total_row, "count"))
+    pages = max(1, math.ceil(total / per_page))
+    page = min(page, pages)
 
     rows = execute_db(
         db,
@@ -383,7 +437,7 @@ def paged_response(
             "total": total,
             "page": page,
             "per_page": per_page,
-            "pages": max(1, math.ceil(total / per_page)),
+            "pages": pages,
         }
     )
 
@@ -400,6 +454,8 @@ def figures_page() -> str:
 
 @app.route("/figures/<int:figure_id>")
 def figure_detail_page(figure_id: int) -> str:
+    if execute_db(get_db(), "SELECT id FROM figures WHERE id = ?", (figure_id,)).fetchone() is None:
+        raise ApiError("figure not found", status=404)
     return render_template("figure_detail.html", page="figures", figure_id=figure_id)
 
 
@@ -424,9 +480,9 @@ FIGURE_FIELDS: dict[str, Callable[[Any], Any]] = {
     "brand": text_or_none,
     "series_title": text_or_none,
     "manufacturer": text_or_none,
-    "release_date": text_or_none,
-    "official_price": int_or_none,
-    "height_mm": int_or_none,
+    "release_date": release_date_or_none,
+    "official_price": nonnegative_int_or_none,
+    "height_mm": nonnegative_int_or_none,
     "scale": text_or_none,
     "is_articulated": bool_int,
     "is_limited": bool_int,
@@ -437,10 +493,10 @@ FIGURE_FIELDS: dict[str, Callable[[Any], Any]] = {
 }
 
 COLLECTION_FIELDS: dict[str, Callable[[Any], Any]] = {
-    "ownership_status": required_text,
-    "purchase_price": int_or_none,
+    "ownership_status": ownership_status,
+    "purchase_price": nonnegative_int_or_none,
     "purchase_shop": text_or_none,
-    "purchase_date": text_or_none,
+    "purchase_date": date_or_none,
     "is_opened": bool_int,
     "display_location": text_or_none,
     "memo": text_or_none,
@@ -618,22 +674,21 @@ def create_collection():
         raise ApiError("figure not found", status=404)
 
     values = parse_fields(data, COLLECTION_FIELDS)
+    updatable = list(values)
     values.setdefault("ownership_status", "欲しい")
     values.setdefault("is_opened", 0)
     values["figure_id"] = figure_id
 
     columns = ", ".join(values)
     placeholders = ", ".join(f":{key}" for key in values)
-    updatable = [key for key in values if key != "figure_id"]
-    assignments = ", ".join(f"{key} = excluded.{key}" for key in updatable)
+    assignments = ", ".join([*(f"{key} = excluded.{key}" for key in updatable), "updated_at = CURRENT_TIMESTAMP"])
     result = execute_db(
         get_db(),
         f"""
         INSERT INTO collection ({columns})
         VALUES ({placeholders})
         ON CONFLICT(figure_id) DO UPDATE SET
-            {assignments},
-            updated_at = CURRENT_TIMESTAMP
+            {assignments}
         RETURNING id
         """,
         values,
@@ -740,8 +795,8 @@ def create_price():
     data = json_body()
     figure_id = int_or_none(data.get("figure_id"))
     shop_name = text_or_none(data.get("shop_name"))
-    price = int_or_none(data.get("price"))
-    checked_date = text_or_none(data.get("checked_date"))
+    price = nonnegative_int_or_none(data.get("price"))
+    checked_date = date_or_none(data.get("checked_date"))
 
     missing = [
         name
@@ -974,7 +1029,7 @@ def options():
         """,
     ).fetchall()
     result["release_months"] = [row_value(row, "value") for row in release_rows]
-    result["ownership_statuses"] = ["欲しい", "予約済み", "所持", "売却済み", "見送り", "高すぎる"]
+    result["ownership_statuses"] = list(OWNERSHIP_STATUSES)
     # Ships the id/name pairs the dropdowns need, so pages no longer pull the
     # whole figures table just to populate a <select>.
     figure_rows = execute_db(db, "SELECT id, name FROM figures ORDER BY name").fetchall()

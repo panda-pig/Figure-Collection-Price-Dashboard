@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   await I18N_READY;
   try {
+    await loadApiConfig();
     const figureId = window.FIGURE_ID;
     const [figure, collection, priceRows] = await Promise.all([
       api(`/api/figures/${figureId}`),
@@ -36,7 +37,7 @@ function renderFigureDetail(figure, collection, prices) {
   document.querySelector("#collectionFacts").innerHTML = collection
     ? factsHtml([
         [t("common.status"), statusLabel(collection.ownership_status)],
-        [t("table.purchasePrice"), collection.purchase_price ? yen(collection.purchase_price) : null],
+        [t("table.purchasePrice"), yen(collection.purchase_price)],
         [t("table.purchaseShop"), collection.purchase_shop],
         [t("table.purchaseDate"), collection.purchase_date],
         [t("collection.displayLocation"), collection.display_location],

@@ -120,7 +120,7 @@ function cell(value, fallback = "-") {
 
 /* ---------------------------------------------------------------- auth --- */
 
-let apiConfig = { writes_open: true, auth_required: false };
+let apiConfig = { writes_open: false, auth_required: false };
 
 function storedToken() {
   return localStorage.getItem(TOKEN_STORAGE_KEY) || "";
@@ -191,7 +191,7 @@ async function loadApiConfig() {
   try {
     apiConfig = await api("/api/config");
   } catch {
-    apiConfig = { writes_open: true, auth_required: false };
+    apiConfig = { writes_open: false, auth_required: false };
   }
   renderAuthState();
   return apiConfig;
@@ -254,6 +254,13 @@ const TREND_PALETTE = ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820"];
 function trendOption(rows) {
   const shops = [...new Set(rows.map((row) => row.shop_name))];
   const dates = [...new Set(rows.map((row) => row.checked_date))].sort();
+  const latestByShop = new Map();
+  rows.forEach((row) => {
+    if (!latestByShop.has(row.shop_name)) latestByShop.set(row.shop_name, new Map());
+    const byDate = latestByShop.get(row.shop_name);
+    const previous = byDate.get(row.checked_date);
+    if (!previous || Number(row.id) > Number(previous.id)) byDate.set(row.checked_date, row);
+  });
   return {
     color: TREND_PALETTE,
     tooltip: { trigger: "axis", valueFormatter: yen },
@@ -267,9 +274,7 @@ function trendOption(rows) {
       smooth: true,
       symbolSize: 8,
       connectNulls: true,
-      data: dates.map(
-        (date) => rows.find((row) => row.shop_name === shop && row.checked_date === date)?.price ?? null,
-      ),
+      data: dates.map((date) => latestByShop.get(shop).get(date)?.price ?? null),
     })),
   };
 }

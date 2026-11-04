@@ -143,7 +143,7 @@ async function onFigureAction(event) {
 
   try {
     if (button.dataset.action === "collect") {
-      openCollectionDialog(figure);
+      await openCollectionDialog(figure);
     } else if (button.dataset.action === "edit") {
       openFigureDialog(figure);
     } else if (button.dataset.action === "delete") {
@@ -235,8 +235,10 @@ async function saveFigure(event) {
 
 /* --------------------------------------------------- collection dialog --- */
 
-function openCollectionDialog(figure) {
+async function openCollectionDialog(figure) {
   if (!figure) return;
+  const result = await api(`/api/collection?figure_id=${encodeURIComponent(figure.id)}`);
+  const existing = result.items[0];
   const dialog = document.querySelector("#collectionDialog");
   const form = document.querySelector("#collectionForm");
   form.reset();
@@ -245,6 +247,13 @@ function openCollectionDialog(figure) {
     .filter(Boolean)
     .join(" / ");
   document.querySelector("#collectionStatus").value = "欲しい";
+  if (existing) {
+    Array.from(form.elements).forEach((input) => {
+      if (!input.name || !(input.name in existing)) return;
+      if (input.type === "checkbox") input.checked = Boolean(existing[input.name]);
+      else input.value = existing[input.name] ?? "";
+    });
+  }
   dialog.showModal();
 }
 

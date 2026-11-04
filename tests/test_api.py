@@ -6,6 +6,8 @@ future change that reintroduces one fails loudly.
 
 from __future__ import annotations
 
+import pytest
+
 
 def test_seed_data_is_loaded(client):
     result = client.get("/api/figures").get_json()
@@ -50,6 +52,49 @@ class TestInputValidation:
     def test_api_errors_are_json_not_html(self, client):
         response = client.get("/api/figures?min_price=abc")
         assert response.mimetype == "application/json"
+
+    @pytest.mark.parametrize("value", [1.5, True, [], {}, 2147483648, 1e100])
+    def test_invalid_integer_values_are_rejected(self, client, value):
+        response = client.post("/api/figures", json={"name": "Invalid", "official_price": value})
+        assert response.status_code == 400
+
+    @pytest.mark.parametrize("field", ["official_price", "height_mm"])
+    def test_negative_figure_numbers_are_rejected(self, client, field):
+        assert client.post("/api/figures", json={"name": "Invalid", field: -1}).status_code == 400
+
+    def test_negative_purchase_price_is_rejected(self, client):
+        assert client.post("/api/collection", json={"figure_id": 1, "purchase_price": -1}).status_code == 400
+
+    @pytest.mark.parametrize("value", ["2026-02-30", "2026-13", "tomorrow"])
+    def test_invalid_release_date_is_rejected(self, client, value):
+        assert client.post("/api/figures", json={"name": "Invalid", "release_date": value}).status_code == 400
+
+    @pytest.mark.parametrize("value", ["2026-02", "2026-02-30", "20260201", "2026-2-1"])
+    def test_invalid_checked_date_is_rejected(self, client, value):
+        response = client.post(
+            "/api/prices", json={"figure_id": 1, "shop_name": "x", "price": 10, "checked_date": value}
+        )
+        assert response.status_code == 400
+
+    def test_invalid_purchase_date_and_status_are_rejected(self, client):
+        for fields in ({"purchase_date": "2026-02-30"}, {"ownership_status": "unknown"}):
+            assert client.post("/api/collection", json={"figure_id": 1, **fields}).status_code == 400
+
+    @pytest.mark.parametrize("value", ["2026-02", "2028-02-29"])
+    def test_month_and_day_release_dates_are_supported(self, client, value):
+        assert client.post("/api/figures", json={"name": "Valid", "release_date": value}).status_code == 201
+
+    def test_invalid_boolean_and_text_values_are_rejected(self, client):
+        for fields in ({"is_limited": "maybe"}, {"name": {"bad": "name"}}):
+            assert client.post("/api/figures", json={"name": "Invalid", **fields}).status_code == 400
+
+    def test_zero_prices_are_valid(self, client):
+        assert client.post("/api/figures", json={"name": "Free", "official_price": 0}).status_code == 201
+
+    def test_out_of_range_page_returns_the_last_page(self, client):
+        result = client.get("/api/figures?per_page=5&page=999999999999999999999").get_json()
+        assert result["page"] == result["pages"] == 4
+        assert len(result["items"]) == 5
 
 
 class TestKeywordSearch:
@@ -123,6 +168,26 @@ class TestPartialUpdate:
 
     def test_update_missing_record_is_404(self, client):
         assert client.put("/api/collection/99999", json={"purchase_price": 1}).status_code == 404
+
+    def test_readding_a_collection_preserves_omitted_fields(self, client):
+        created = client.post(
+            "/api/collection",
+            json={"figure_id": 1, "ownership_status": "所持", "is_opened": True, "memo": "keep"},
+        ).get_json()
+        response = client.post("/api/collection", json={"figure_id": 1, "purchase_price": 1234})
+        assert response.get_json()["id"] == created["id"]
+        row = client.get("/api/collection?figure_id=1").get_json()["items"][0]
+        assert row["ownership_status"] == "所持"
+        assert row["is_opened"] == 1
+        assert row["memo"] == "keep"
+        assert row["purchase_price"] == 1234
+
+    def test_readding_with_only_figure_id_preserves_existing_record(self, client):
+        before = client.get("/api/collection?figure_id=1").get_json()["items"][0]
+        assert client.post("/api/collection", json={"figure_id": 1}).status_code == 201
+        after = client.get("/api/collection?figure_id=1").get_json()["items"][0]
+        for key in ("id", "ownership_status", "is_opened", "purchase_price", "memo"):
+            assert before[key] == after[key]
 
 
 class TestFigureCrud:
@@ -293,3 +358,6 @@ class TestPages:
 
     def test_unknown_page_is_a_normal_404(self, client):
         assert client.get("/no-such-page").status_code == 404
+
+    def test_missing_figure_detail_page_is_404(self, client):
+        assert client.get("/figures/99999").status_code == 404
