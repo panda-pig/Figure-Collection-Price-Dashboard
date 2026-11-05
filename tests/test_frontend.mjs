@@ -8,10 +8,12 @@ const source = readFileSync(new URL("../static/js/app.js", import.meta.url), "ut
 async function frontend(fetch = async () => ({ ok: true, json: async () => ({}) })) {
   const context = vm.createContext({
     Intl,
+    AbortController,
     URLSearchParams,
     fetch,
     localStorage: { getItem: () => null },
     document: {
+      body: { classList: { toggle() {} } },
       documentElement: { dataset: {} },
       querySelectorAll: () => [],
       querySelector: () => null,
@@ -37,6 +39,69 @@ test("trend uses the newest same-day observation regardless of response order", 
     assert.deepEqual(data, { a: [80, null], b: [null, 200] });
     assert.deepEqual(Array.from(result.xAxis.data), ["2026-01-01", "2026-01-02"]);
   }
+});
+
+test("a newer filter request cancels the old one and only renders the latest results", async () => {
+  const pending = new Map();
+  const context = await frontend((path, options) => {
+    if (!path.startsWith("/api/")) return { ok: true, json: async () => ({}) };
+    return new Promise((resolve) => pending.set(path, { resolve, signal: options.signal }));
+  });
+  context.rendered = [];
+  vm.runInContext("const load = createLatestLoader()", context);
+  const first = vm.runInContext('load("/api/figures?brand=old", (data) => rendered.push(data.brand))', context);
+  const second = vm.runInContext('load("/api/figures?brand=new", (data) => rendered.push(data.brand))', context);
+  assert.equal(pending.get("/api/figures?brand=old").signal.aborted, true);
+  pending.get("/api/figures?brand=new").resolve({ ok: true, json: async () => ({ brand: "new" }) });
+  await second;
+  pending.get("/api/figures?brand=old").resolve({ ok: true, json: async () => ({ brand: "old" }) });
+  await first;
+  assert.deepEqual(context.rendered, ["new"]);
+});
+
+test("only a current request failure is reported", async () => {
+  const failures = [];
+  const context = await frontend((path) => {
+    if (!path.startsWith("/api/")) return { ok: true, json: async () => ({}) };
+    return new Promise((_, reject) => failures.push(reject));
+  });
+  context.messages = [];
+  vm.runInContext("toast = (message) => messages.push(message); const load = createLatestLoader()", context);
+  const first = vm.runInContext('load("/api/prices/1", () => {})', context);
+  const second = vm.runInContext('load("/api/prices/2", () => {})', context);
+  failures[0](new Error("cancelled"));
+  failures[1](new Error("offline"));
+  await first;
+  await second;
+  assert.deepEqual(context.messages, ["offline"]);
+});
+
+test("collection fields track write access changes", async () => {
+  const context = await frontend();
+  const field = { disabled: false };
+  context.document.querySelectorAll = () => [field];
+  vm.runInContext("renderAuthState()", context);
+  assert.equal(field.disabled, true);
+  vm.runInContext("apiConfig.writes_open = true; renderAuthState()", context);
+  assert.equal(field.disabled, false);
+  vm.runInContext("apiConfig.writes_open = false; renderAuthState()", context);
+  assert.equal(field.disabled, true);
+});
+
+test("price date defaults to the local calendar date, not UTC", async () => {
+  const context = await frontend();
+  const input = {};
+  context.document.querySelector = () => input;
+  context.localDate = {
+    getFullYear: () => 2026,
+    getMonth: () => 0,
+    getDate: () => 1,
+    toISOString: () => "2025-12-31T16:00:00.000Z",
+  };
+  const prices = readFileSync(new URL("../static/js/prices.js", import.meta.url), "utf8");
+  vm.runInContext(prices, context);
+  vm.runInContext("resetCheckedDate(localDate)", context);
+  assert.equal(input.value, "2026-01-01");
 });
 
 test("trend preserves zero prices and supports empty history", async () => {

@@ -2,6 +2,7 @@ let figuresState = [];
 let figureOptions = {};
 let figuresPager;
 let currentPage = 1;
+const loadLatestFigures = createLatestLoader();
 
 const FILTER_IDS = [
   "keyword",
@@ -45,6 +46,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       el.addEventListener("change", handler);
     });
     document.querySelector("#clearFilters").addEventListener("click", () => {
+      window.clearTimeout(debounce);
       document.querySelectorAll(".filters input, .filters select").forEach((el) => {
         el.value = "";
       });
@@ -81,11 +83,12 @@ async function loadFigures(page = currentPage) {
   }
   params.set("page", page);
 
-  const result = await api(`/api/figures?${params.toString()}`);
-  currentPage = result.page;
-  figuresState = result.items;
-  renderFigures(result);
-  figuresPager.update(result);
+  await loadLatestFigures(`/api/figures?${params.toString()}`, (result) => {
+    currentPage = result.page;
+    figuresState = result.items;
+    renderFigures(result);
+    figuresPager.update(result);
+  });
 }
 
 function renderFigures(result) {

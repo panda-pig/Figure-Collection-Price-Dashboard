@@ -1,4 +1,5 @@
 const dashboardCharts = [];
+const loadLatestTrend = createLatestLoader();
 
 const CHART_PALETTE = ["#285a7f", "#d85b7f", "#b78a2e", "#297c63", "#111820", "#8c97a6"];
 
@@ -7,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     // Only id/name pairs are needed for the trend picker, so this no longer
     // fetches the whole figures table alongside the dashboard payload.
-    const [dashboard, options] = await Promise.all([api("/api/dashboard"), api("/api/options")]);
+    const [dashboard, options] = await Promise.all([api("/api/dashboard"), api("/api/options"), loadApiConfig()]);
     renderMetrics(dashboard);
     renderDashboardCharts(dashboard);
     setupTrendSelect(options.figures, dashboard.default_trend_figure);
@@ -103,8 +104,7 @@ function setupTrendSelect(figures, defaultFigure) {
 
 async function renderTrend(figureId) {
   if (!figureId) return;
-  try {
-    const rows = await api(`/api/prices/${figureId}`);
+  await loadLatestTrend(`/api/prices/${encodeURIComponent(figureId)}`, (rows) => {
     const chartEl = document.getElementById("trendChart");
     let chart = echarts.getInstanceByDom(chartEl);
     if (!chart) {
@@ -113,7 +113,5 @@ async function renderTrend(figureId) {
     }
     document.querySelector("#trendSubtitle").textContent = rows[0]?.name || t("chart.priceTrendDesc");
     chart.setOption(trendOption(rows), true);
-  } catch (error) {
-    toast(error.message);
-  }
+  });
 }

@@ -1,7 +1,7 @@
-let collectionRows = [];
 let collectionOptions = {};
 let collectionPager;
 let currentPage = 1;
+const loadLatestCollection = createLatestLoader();
 
 document.addEventListener("DOMContentLoaded", async () => {
   await I18N_READY;
@@ -38,11 +38,11 @@ async function loadCollection(page = currentPage) {
   if (brand) params.set("brand", brand);
   params.set("page", page);
 
-  const result = await api(`/api/collection?${params.toString()}`);
-  currentPage = result.page;
-  collectionRows = result.items;
-  renderCollection(result);
-  collectionPager.update(result);
+  await loadLatestCollection(`/api/collection?${params.toString()}`, (result) => {
+    currentPage = result.page;
+    renderCollection(result);
+    collectionPager.update(result);
+  });
 }
 
 function renderCollection(result) {
@@ -88,6 +88,7 @@ function renderCollection(result) {
     `,
     )
     .join("");
+  syncWriteFields();
 }
 
 async function onCollectionAction(event) {

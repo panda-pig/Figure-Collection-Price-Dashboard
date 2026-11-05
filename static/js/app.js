@@ -137,17 +137,25 @@ function canWrite() {
 }
 
 function renderAuthState() {
+  const unlocked = canWrite();
+  document.body.classList.toggle("read-only", !unlocked);
+  syncWriteFields();
   const panel = document.querySelector("#authPanel");
   if (!panel) return;
   // The lock only matters when the server actually enforces it.
   panel.hidden = apiConfig.writes_open;
-  const unlocked = canWrite();
   const button = panel.querySelector("#authToggle");
   const state = panel.querySelector("#authState");
   if (state) state.textContent = unlocked ? t("auth.unlocked") : t("auth.locked");
   if (button) button.textContent = unlocked ? t("auth.lock") : t("auth.unlock");
   panel.classList.toggle("unlocked", unlocked);
-  document.body.classList.toggle("read-only", !unlocked);
+}
+
+function syncWriteFields() {
+  const disabled = !canWrite();
+  document.querySelectorAll("[data-write-fields] [data-field]").forEach((field) => {
+    field.disabled = disabled;
+  });
 }
 
 function promptForToken(message = t("auth.tokenPrompt")) {
@@ -195,6 +203,23 @@ async function loadApiConfig() {
   }
   renderAuthState();
   return apiConfig;
+}
+
+function createLatestLoader() {
+  let active;
+  return async (path, render) => {
+    active?.abort();
+    const controller = new AbortController();
+    active = controller;
+    try {
+      const result = await api(path, { signal: controller.signal });
+      if (!controller.signal.aborted) render(result);
+    } catch (error) {
+      if (!controller.signal.aborted) toast(error.message);
+    } finally {
+      if (active === controller) active = undefined;
+    }
+  };
 }
 
 /* ------------------------------------------------------------- helpers --- */

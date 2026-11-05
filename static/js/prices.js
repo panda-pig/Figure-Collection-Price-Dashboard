@@ -1,5 +1,12 @@
 let pricesPager;
 let currentPage = 1;
+const loadLatestPrices = createLatestLoader();
+
+function resetCheckedDate(date = new Date()) {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  document.querySelector("input[name='checked_date']").value = `${date.getFullYear()}-${month}-${day}`;
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
   await I18N_READY;
@@ -10,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const options = await api("/api/options");
     setOptions(document.querySelector("#figureSelect"), options.figures, null);
     setOptions(document.querySelector("#priceFigureFilter"), options.figures);
-    document.querySelector("input[name='checked_date']").valueAsDate = new Date();
+    resetCheckedDate();
 
     pricesPager = createPager("pricesPager", (page) => loadPrices(page));
 
@@ -33,7 +40,7 @@ async function savePrice(event) {
   try {
     await api("/api/prices", { method: "POST", body: JSON.stringify(payload) });
     form.reset();
-    document.querySelector("input[name='checked_date']").valueAsDate = new Date();
+    resetCheckedDate();
     toast(t("prices.saved"));
     await loadPrices(1);
   } catch (error) {
@@ -47,10 +54,11 @@ async function loadPrices(page = currentPage) {
   if (figureId) params.set("figure_id", figureId);
   params.set("page", page);
 
-  const result = await api(`/api/prices?${params.toString()}`);
-  currentPage = result.page;
-  renderPrices(result);
-  pricesPager.update(result);
+  await loadLatestPrices(`/api/prices?${params.toString()}`, (result) => {
+    currentPage = result.page;
+    renderPrices(result);
+    pricesPager.update(result);
+  });
 }
 
 function renderPrices(result) {
